@@ -1,0 +1,2 @@
+For second commit!
+I use branch "master" to check exercises, which work correctly.
