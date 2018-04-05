@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/distancetext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="397dp"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="Total Distance:"
+        android:textColor="@android:color/black"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timetext"
+        app:layout_constraintVertical_bias="1.0"
+        app:layout_editor_absoluteX="25dp"
+        app:layout_editor_absoluteY="80dp" />
+
+    <TextView
+        android:id="@+id/speedtext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="Speed:"
+        android:textColor="@android:color/black"
+        android:textSize="18sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/timetext"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/timetext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="18dp"
+        android:layout_marginTop="14dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="Total Time:"
+        android:textColor="@android:color/black"
+        android:textSize="17sp"
+        app:layout_constraintBottom_toTopOf="@+id/distancetext"
+        app:layout_constraintTop_toBottomOf="@+id/speedtext"
+        app:layout_editor_absoluteX="0dp"
+        app:layout_editor_absoluteY="39dp" />
+
+
+
+</android.support.constraint.ConstraintLayout>
