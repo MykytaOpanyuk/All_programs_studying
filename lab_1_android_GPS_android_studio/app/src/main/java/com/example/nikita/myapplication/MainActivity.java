@@ -2,12 +2,12 @@ package com.example.nikita.myapplication;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -15,26 +15,29 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v4.app.ActivityCompat;
 import android.widget.TextView;
-import android.app.PendingIntent;
 
+//import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.location.LocationResult;
 import android.content.pm.PackageManager;
 
-import android.support.annotation.NonNull;
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
-
+import java.util.List;
 
 public class MainActivity extends Activity {
 
     //---Finding speed---//
+    private static final int PERMISSION_REQUEST_FINE = 0;
+    private static final int PERMISSION_REQUEST_COARSE = 0;
+
     private static final long INTERVAL = 500;
     private static final long FASTEST_INTERVAL = 200;
 
@@ -42,6 +45,10 @@ public class MainActivity extends Activity {
     public LocationRequest location_request_high;
     public Location cur_location, l_start, l_end;
     public FusedLocationProviderClient fused_location_client;
+    LocationCallback location_callback;
+    List<Location> locations;
+    static LocationManager location_manager;
+    static LocationListener location_listener;
 
     public static double distance = 0;
     public double double_speed = 0;
@@ -50,13 +57,10 @@ public class MainActivity extends Activity {
     //---Initialize---//
     static Check_location my_service;
     static boolean status;
-    static LocationManager location_manager;
     static TextView dist, time, speed;
     static long start_time, end_time;
-    static ProgressDialog locate;
     static int p = 0;
     Intent i;
-    PendingIntent pend_int;
 
     private ServiceConnection sc = new ServiceConnection() {
         @Override
@@ -94,6 +98,56 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        if (ActivityCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission( this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_REQUEST_FINE);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        PERMISSION_REQUEST_COARSE);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+
+            location_manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, location_listener);
+        } else {
+            location_manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, location_listener);
+        }
+
     }
 
     @Override
@@ -130,57 +184,46 @@ public class MainActivity extends Activity {
         speed = findViewById(R.id.speedtext);
 
         checkGps();
-        location_manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        location_manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         if (!location_manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             return;
         }
 
-        if (!status) {
-            //Here, the Location Service gets bound and the GPS Speedometer gets Active.
-            bindService();
+        location_listener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                cur_location = location;
+                if (l_start == null) {
+                    l_start = cur_location;
+                    l_end = cur_location;
+                } else
+                    l_end = cur_location;
 
-            location_request_high = LocationRequest.create();
-            location_request_high.setInterval(INTERVAL);
-            location_request_high.setFastestInterval(FASTEST_INTERVAL);
-            location_request_high.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-            location_request_low = LocationRequest.create();
-            location_request_low.setInterval(INTERVAL * 2);
-            location_request_low.setFastestInterval(FASTEST_INTERVAL * 2);
-            location_request_low.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-
-            LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                    .addLocationRequest(location_request_high)
-                    .addLocationRequest(location_request_low);
-
-
-            Task<LocationSettingsResponse> result =
-                    LocationServices.getSettingsClient(this).checkLocationSettings(builder.build()); // MISTAKE
-
-            fused_location_client = LocationServices.getFusedLocationProviderClient(this);
-
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                    == PackageManager.PERMISSION_GRANTED) {
-                fused_location_client.requestLocationUpdates(LocationRequest.create(), pend_int)
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                onLocationChanged(cur_location);
-                            }
-                        });
-                locate = new ProgressDialog(MainActivity.this);
-                locate.setIndeterminate(true);
-                locate.setCancelable(false);
-                // add changing of speed
+                //Calling the method below updates the  live values of distance and speed to the TextViews.
+                updateUI();
+                //calculating the speed with getSpeed method it returns speed in m/s so we are converting it into kmph
+                double_speed = location.getSpeed() * 3.6;
             }
 
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
 
-        }
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
     }
 
     public void onLocationChanged(Location location) {
-        MainActivity.locate.dismiss();
         cur_location = location;
         if (l_start == null) {
             l_start = cur_location;
@@ -197,17 +240,17 @@ public class MainActivity extends Activity {
     //The live feed of Distance and Speed are being set in the method below .
     private void updateUI() {
         if (MainActivity.p == 0) {
-            distance = distance + (l_start.distanceTo(l_end) / 1000.00);
+            MainActivity.distance = MainActivity.distance + (l_start.distanceTo(l_end) / 1000.00);
             MainActivity.end_time = System.currentTimeMillis();
             long diff = MainActivity.end_time - MainActivity.start_time;
             diff = TimeUnit.MILLISECONDS.toMinutes(diff);
             MainActivity.time.setText("Total Time: " + diff + " min");
             if (double_speed > 0.0)
-                MainActivity.speed.setText("Current speed: " + new DecimalFormat("#.##").format(speed) + " km/h");
+                MainActivity.speed.setText("Current speed: " + new DecimalFormat("#.##").format(double_speed) + " km/h");
             else
                 MainActivity.speed.setText(".......");
 
-            MainActivity.dist.setText(new DecimalFormat("#.###").format(distance) + "from starting.");
+            MainActivity.dist.setText(new DecimalFormat("#.###").format(MainActivity.distance) + "from starting.");
 
             l_start = l_end;
 
@@ -218,7 +261,7 @@ public class MainActivity extends Activity {
 
     //This method leads you to the alert dialog box.
     void checkGps() {
-        location_manager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        location_manager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         if (!location_manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             showGPSDisabledAlertToUser();
