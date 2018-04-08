@@ -7,54 +7,69 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/distancetext"
-        android:layout_width="match_parent"
+        android:id="@+id/speed_internet"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="397dp"
-        android:layout_marginTop="18dp"
-        android:gravity="center"
-        android:singleLine="true"
-        android:text="Total Distance:"
-        android:textColor="@android:color/black"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timetext"
-        app:layout_constraintVertical_bias="1.0"
-        app:layout_editor_absoluteX="25dp"
-        app:layout_editor_absoluteY="80dp" />
-
-    <TextView
-        android:id="@+id/speedtext"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="14dp"
-        android:gravity="center"
-        android:singleLine="true"
-        android:text="Speed:"
-        android:textColor="@android:color/black"
+        android:text="speed (net) :"
         android:textSize="18sp"
         android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/timetext"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.442" />
+
+    <TextView
+        android:id="@+id/speed_act"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="speed :"
+        android:textSize="18sp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.39" />
+
+    <TextView
+        android:id="@+id/activity_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/timetext"
-        android:layout_width="match_parent"
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
-        android:layout_marginTop="14dp"
-        android:gravity="center"
-        android:singleLine="true"
-        android:text="Total Time:"
-        android:textColor="@android:color/black"
-        android:textSize="17sp"
-        app:layout_constraintBottom_toTopOf="@+id/distancetext"
-        app:layout_constraintTop_toBottomOf="@+id/speedtext"
-        app:layout_editor_absoluteX="0dp"
-        app:layout_editor_absoluteY="39dp" />
+        android:text="Author : Mykyta " />
 
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="142dp"
+        android:layout_height="102dp"
+        android:layout_marginBottom="8dp"
+        android:text="This porgram use GPS provider/Network provider! It needs time to start working!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:layout_editor_absoluteX="16dp" />
 
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="38dp"
+        android:layout_height="36dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/speed_act"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
 </android.support.constraint.ConstraintLayout>
