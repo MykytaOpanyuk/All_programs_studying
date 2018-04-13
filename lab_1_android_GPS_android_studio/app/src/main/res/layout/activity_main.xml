@@ -4,15 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/holo_orange_light"
+    android:background="@color/colorPrimary"
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/distance"
+        android:id="@+id/speed_2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="@android:color/holo_red_dark"
-        android:text="distance :"
+        android:text="speed :"
         android:textColor="@android:color/background_dark"
         android:textSize="18sp"
         android:visibility="visible"
@@ -22,12 +22,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.442" />
 
-
     <TextView
-        android:id="@+id/speed_act"
+        android:id="@+id/speed_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/darker_gray"
         android:text="speed :"
+        android:textColor="@android:color/background_dark"
         android:textSize="18sp"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -39,8 +40,10 @@
     <TextView
         android:id="@+id/activity_location"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="20dp"
+        android:backgroundTint="@android:color/darker_gray"
         android:text="Hello World!"
+        android:textColor="@android:color/background_dark"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -51,8 +54,9 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/holo_blue_light"
-        android:text="Author : Mykyta " />
+        android:background="@android:color/darker_gray"
+        android:text="Author : Mykyta "
+        android:textColor="@android:color/background_dark" />
 
     <TextView
         android:id="@+id/textView2"
@@ -60,23 +64,27 @@
         android:layout_height="102dp"
         android:layout_marginBottom="8dp"
         android:layout_marginStart="8dp"
-        android:background="@android:color/holo_blue_dark"
-        android:text="This program use GPS provider! It needs time to start working!"
+        android:background="@android:color/darker_gray"
+        android:text="This program use GPS provider (FusedClient)."
+        android:textColor="@android:color/background_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="38dp"
-        android:layout_height="36dp"
+        android:layout_width="63dp"
+        android:layout_height="53dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:background="@android:color/darker_gray"
         app:layout_constraintBottom_toTopOf="@+id/speed_act"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.501"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.504"
         app:srcCompat="@android:drawable/ic_menu_mylocation" />
 
 </android.support.constraint.ConstraintLayout>
