@@ -1,7 +1,6 @@
 #include "mainwindow.h"
+#include "chatdialog.h"
 #include "ui_mainwindow.h"
-#include <QtWidgets>
-#include <QtNetwork>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     tcpSocket = new QTcpSocket(this);
-
+    /*
     connect(hostCombo, SIGNAL(editTextChanged(QString)),
             this, SLOT(enableGetFortuneButton()));
     connect(portLineEdit, SIGNAL(textChanged(QString)),
@@ -28,13 +27,65 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(getFortuneButton, SIGNAL(clicked()),
             this, SLOT(requestNewFortune()));
     connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+    */
+}
 
-    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(read_text()));
+void MainWindow::sendMessage(const QString &message)
+{
+    if (message.isEmpty())
+        return;
 
-    connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)),
-        this, SLOT(displayError(QAbstractSocket::SocketError)));
+    QList<Connection *> connections = peers.values();
+    foreach (Connection *connection, connections)
+        connection->sendMessage(message);
+}
 
+QString MainWindow::nickName() const
+{
+    return QString(peerManager->userName()) + '@' + QHostInfo::localHostName()
+           + ':' + QString::number(server.serverPort());
+}
 
+bool MainWindow::hasConnection(const QHostAddress &senderIp, int senderPort) const
+{
+    if (senderPort == -1)
+        return peers.contains(senderIp);
+
+    if (!peers.contains(senderIp))
+        return false;
+
+    QList<Connection *> connections = peers.values(senderIp);
+    foreach (Connection *connection, connections) {
+        if (connection->peerPort() == senderPort)
+            return true;
+    }
+
+    return false;
+}
+
+void MainWindow::newConnection(Connection *connection)
+{
+    connection->setGreetingMessage(peerManager->userName());
+
+    connect(connection, SIGNAL(error(QAbstractSocket::SocketError)),
+            this, SLOT(connectionError(QAbstractSocket::SocketError)));
+    connect(connection, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    connect(connection, SIGNAL(readyForUse()), this, SLOT(readyForUse()));
+}
+
+void MainWindow::readyForUse()
+{
+    Connection *connection = qobject_cast<Connection *>(sender());
+    if ((!connection) || hasConnection(connection->peerAddress(),connection->peerPort()))
+        return;
+
+    connect(connection, SIGNAL(newMessage(QString,QString)),
+            this, SIGNAL(newMessage(QString,QString)));
+
+    peers.insert(connection->peerAddress(), connection);
+    QString nick = connection->name();
+    if (!nick.isEmpty())
+        emit newParticipant(nick);
 }
 
 MainWindow::~MainWindow()
@@ -68,32 +119,5 @@ void MainWindow::displayError(QAbstractSocket::SocketError socketError)
     ui->Send->setEnabled(true);
     ui->Send_file->setEnabled(true);
 }
-void MainWindow::enableGetFortuneButton()
-{
-    getFortuneButton->setEnabled((!networkSession || networkSession->isOpen()) &&
-                                 !hostCombo->currentText().isEmpty() &&
-                                 !portLineEdit->text().isEmpty());
 
-}
-
-void MainWindow::sessionOpened()
-{
-    // Save the used configuration
-    QNetworkConfiguration config = networkSession->configuration();
-    QString id;
-    if (config.type() == QNetworkConfiguration::UserChoice)
-        id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
-    else
-        id = config.identifier();
-
-    QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-    settings.beginGroup(QLatin1String("QtNetwork"));
-    settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
-    settings.endGroup();
-
-    statusLabel->setText(tr("This examples requires that you run the "
-                            "Fortune Server example as well."));
-
-    enableGetFortuneButton();
-}
 
