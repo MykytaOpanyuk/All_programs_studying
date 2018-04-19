@@ -57,7 +57,9 @@
 static const qint32 BroadcastInterval = 2000;
 static const unsigned broadcastPort = 45000;
 
-PeerManager::PeerManager(MainWindow *new_client)
+
+
+PeerManager::PeerManager(Client *new_client, QString new_name)
 {
     this->client = new_client;
 
@@ -73,8 +75,7 @@ PeerManager::PeerManager(MainWindow *new_client)
         }
     }
     */
-    if (client->ui->save)
-        username = client->ui->username->text();
+    username = new_name;
 
     if (username.isEmpty())
         username = "unknown";

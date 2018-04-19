@@ -31,15 +31,15 @@ SOURCES += \
         mainwindow.cpp \
     connection.cpp \
     peermanager.cpp \
-    chatdialog.cpp \
-    server.cpp
+    server.cpp \
+    client.cpp
 
 HEADERS += \
         mainwindow.h \
     connection.h \
-    chatdialog.h \
     peermanager.h \
-    server.h
+    server.h \
+    client.h
 
 FORMS += \
         mainwindow.ui

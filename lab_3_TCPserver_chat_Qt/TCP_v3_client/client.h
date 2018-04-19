@@ -48,52 +48,45 @@
 **
 ****************************************************************************/
 
-#ifndef PEERMANAGER_H
-#define PEERMANAGER_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
-#include <QByteArray>
-#include <QList>
-#include <QObject>
-#include <QTimer>
-#include <QUdpSocket>
-#include "mainwindow.h"
+#include <QAbstractSocket>
+#include <QHash>
+#include <QHostAddress>
 
-namespace Ui {
-class MainWindow;
-}
-class MainWindow;
-class Connection;
+#include "server.h"
 
-class PeerManager : public QObject
+class PeerManager;
+
+class Client : public QObject
 {
     Q_OBJECT
 
 public:
+    Client();
+    QString new_name;
 
-    MainWindow *client;
-    QList<QHostAddress> broadcastAddresses;
-    QList<QHostAddress> ipAddresses;
-    QUdpSocket broadcastSocket;
-    QTimer broadcastTimer;
-    QString username;
-    int serverPort;
-
-    PeerManager(MainWindow *client);
-
-    void setServerPort(int port);
-    QString userName() const;
-    void startBroadcasting();
-    bool isLocalHostAddress(const QHostAddress &address);
+    void sendMessage(const QString &message);
+    QString nickName() const;
+    bool hasConnection(const QHostAddress &senderIp, int senderPort = -1) const;
 
 signals:
-    void newConnection(Connection *connection);
+    void newMessage(const QString &from, const QString &message);
+    void newParticipant(const QString &nick);
+    void participantLeft(const QString &nick);
 
 private slots:
-    void sendBroadcastDatagram();
-    void readBroadcastDatagram();
+    void newConnection(Connection *connection);
+    void connectionError(QAbstractSocket::SocketError socketError);
+    void disconnected();
+    void readyForUse();
 
 private:
-    void updateAddresses();
+    void removeConnection(Connection *connection);
+    PeerManager *peerManager;
+    Server server;
+    QMultiHash<QHostAddress, Connection *> peers;
 };
 
 #endif

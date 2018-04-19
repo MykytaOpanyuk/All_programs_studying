@@ -53,14 +53,16 @@
 #include "chatdialog.h"
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
+#include "client.h"
 #include "peermanager.h"
 
-ChatDialog::ChatDialog(QWidget *parent)
-    : QDialog(parent)
+ChatDialog::ChatDialog(Ui::MainWindow new_client)
 {
+    client = &new_client;
+
     client.ui->message->setFocusPolicy(Qt::StrongFocus);
-    client.ui->listView->setFocusPolicy(Qt::NoFocus);
-    client.ui->listView->setReadOnly(true);
+    client.ui->textEdit->setFocusPolicy(Qt::NoFocus);
+    client.ui->textEdit->setReadOnly(true);
 
     connect(client.ui->message, SIGNAL(returnPressed()), this, SLOT(returnPressed()));
     connect(client.ui->message, SIGNAL(returnPressed()), this, SLOT(returnPressed()));
@@ -82,33 +84,33 @@ void ChatDialog::appendMessage(const QString &from, const QString &message)
     if (from.isEmpty() || message.isEmpty())
         return;
 
-    QTextCursor cursor(client.ui->listView->textCursor());
+    QTextCursor cursor(client.ui->textEdit->textCursor());
     cursor.movePosition(QTextCursor::End);
     QTextTable *table = cursor.insertTable(1, 2, tableFormat);
     table->cellAt(0, 0).firstCursorPosition().insertText('<' + from + "> ");
     table->cellAt(0, 1).firstCursorPosition().insertText(message);
-    QScrollBar *bar = textEdit->verticalScrollBar();
+    QScrollBar *bar = client.ui->textEdit->verticalScrollBar();
     bar->setValue(bar->maximum());
 }
 
 void ChatDialog::returnPressed()
 {
-    QString text = client.ui->message;
+    QString text = client.ui->message->text();
     if (text.isEmpty())
         return;
 
     if (text.startsWith(QChar('/'))) {
-        QColor color = client.ui->listView->tex;
-        textEdit->setTextColor(Qt::red);
-        textEdit->append(tr("! Unknown command: %1")
+        QColor color = client.ui->textEdit->textColor();
+        client.ui->textEdit->setTextColor(Qt::red);
+        client.ui->textEdit->append(tr("! Unknown command: %1")
                          .arg(text.left(text.indexOf(' '))));
-        textEdit->setTextColor(color);
+        client.ui->textEdit->setTextColor(color);
     } else {
         client.sendMessage(text);
         appendMessage(myNickName, text);
     }
 
-    lineEdit->clear();
+    client.ui->message->clear();
 }
 
 void ChatDialog::newParticipant(const QString &nick)
@@ -116,8 +118,8 @@ void ChatDialog::newParticipant(const QString &nick)
     if (nick.isEmpty())
         return;
 
-    textEdit->setTextColor(Qt::gray);
-    textEdit->append(tr("* %1 has joined").arg(nick));
+    client.ui->textEdit->setTextColor(Qt::gray);
+    client.ui->textEdit->append(tr("* %1 has joined").arg(nick));
     client.ui->listWidget->addItem(nick);
 }
 
@@ -126,21 +128,21 @@ void ChatDialog::participantLeft(const QString &nick)
     if (nick.isEmpty())
         return;
 
-    QList<QListWidgetItem *> items = listWidget->findItems(nick,
+    QList<QListWidgetItem *> items = client.ui->listWidget->findItems(nick,
                                                            Qt::MatchExactly);
     if (items.isEmpty())
         return;
 
     delete items.at(0);
-    QColor color = textEdit->textColor();
-    textEdit->setTextColor(Qt::gray);
-    textEdit->append(tr("* %1 has left").arg(nick));
-    textEdit->setTextColor(color);
+    QColor color = client.ui->textEdit->textColor();
+    client.ui->textEdit->setTextColor(Qt::gray);
+    client.ui->textEdit->append(tr("* %1 has left").arg(nick));
+    client.ui->textEdit->setTextColor(color);
 }
 
 void ChatDialog::showInformation()
 {
-    if (listWidget->count() == 1) {
+    if (client.ui->listWidget->count() == 1) {
         QMessageBox::information(this, tr("Chat"),
                                  tr("Launch several instances of this "
                                     "program on your local network and "

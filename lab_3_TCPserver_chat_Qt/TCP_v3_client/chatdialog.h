@@ -52,13 +52,14 @@
 #define CHATDIALOG_H
 
 #include "mainwindow.h"
+#include "client.h"
 
-class ChatDialog : public QDialog
+class ChatDialog
 {
     Q_OBJECT
 
 public:
-    ChatDialog(QWidget *parent = 0);
+    ChatDialog(Ui::MainWindow new_client);
 
 public slots:
     void appendMessage(const QString &from, const QString &message);
@@ -70,7 +71,7 @@ private slots:
     void showInformation();
 
 private:
-    MainWindow client;
+    Client client;
     QString myNickName;
     QTextTableFormat tableFormat;
 };
