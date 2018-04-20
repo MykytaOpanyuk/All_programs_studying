@@ -4,6 +4,9 @@
 #include <QDialog>
 #include <QTcpSocket>
 #include <QMainWindow>
+#include <QHostAddress>
+#include <QMessageBox>
+#include "../TCP_v2_server/my_client.h"
 
 namespace Ui {
 class Client;

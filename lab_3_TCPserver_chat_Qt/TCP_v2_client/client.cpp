@@ -59,13 +59,13 @@ void Client::on_socket_ready_read()
 
     switch (command)
     {
-        case MyClient::comAutchSuccess:
+        case My_client::com_autch_success:
         {
             ui->send_message->setEnabled(true);
             add_to_log("Enter as " + name, Qt::green);
         }
         break;
-        case MyClient::comUsersOnline:
+        case My_client::com_users_online:
         {
             add_to_log("Received user list " + name, Qt::green);
             ui->send_message->setEnabled(true);
@@ -77,14 +77,14 @@ void Client::on_socket_ready_read()
             ui->users_list->addItems(l);
         }
         break;
-        case MyClient::comPublicServerMessage:
+        case My_client::com_public_server_message:
         {
             QString message;
             in >> message;
             add_to_log("[PublicServerMessage]: " + message, Qt::red);
         }
         break;
-        case MyClient::comMessageToAll:
+        case My_client::com_message_to_all:
         {
             QString user;
             in >> user;
@@ -94,7 +94,7 @@ void Client::on_socket_ready_read()
         }
         break;
 
-        case MyClient::comMessageToUsers:
+        case My_client::com_message_to_users:
         {
             QString user;
             in >> user;
@@ -103,14 +103,14 @@ void Client::on_socket_ready_read()
             add_to_log("[" + user + "](private): " + message, Qt::blue);
         }
         break;
-        case MyClient::comPrivateServerMessage:
+        case My_client::com_private_server_message:
         {
             QString message;
             in >> message;
-            add_to_serve("[PrivateServerMessage]: " + message, Qt::red);
+            add_to_log("[PrivateServerMessage]: " + message, Qt::red);
         }
         break;
-        case MyClient::comUserJoin:
+        case My_client::com_user_join:
         {
             QString name;
             in >> name;
@@ -118,7 +118,7 @@ void Client::on_socket_ready_read()
             add_to_log( name + " joined", Qt::green);
         }
         break;
-        case MyClient::comUserLeft:
+        case My_client::com_user_left:
         {
             QString name;
             in >> name;
@@ -131,13 +131,13 @@ void Client::on_socket_ready_read()
                 }
         }
         break;
-        case MyClient::comErrNameInvalid:
+        case My_client::com_error_name_invalid:
         {
             QMessageBox::information(this, "Error", "This name is invalid.");
             new_socket->disconnectFromHost();
         }
         break;
-        case MyClient::comErrNameUsed:
+        case My_client::com_error_name_used:
         {
             QMessageBox::information(this, "Error", "This name is already used.");
             new_socket->disconnectFromHost();
@@ -157,7 +157,7 @@ void Client::on_socket_connected()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (quint16)0;
-    out << (quint8)MyClient::comAutchReq;
+    out << (quint8)My_client::com_autch_request;
     out << ui->username->text();
     name = ui->username->text();
     out.device()->seek(0);
@@ -176,7 +176,7 @@ void Client::on_socket_disconnected()
 
 void Client::on_connect_clicked()
 {
-    new_socket->connectToHost(ui->adress->text(), ui->port->text());
+    new_socket->connectToHost(ui->adress->text(), ui->port->text().toUShort());
 }
 
 void Client::on_disconnect_clicked()
@@ -186,7 +186,7 @@ void Client::on_disconnect_clicked()
 
 void Client::on_send_to_all_clicked()
 {
-    if (ui->cbToAll->isChecked())
+    if (ui->check_to_all->isChecked())
         ui->send_message->setText("Send To All");
     else
         ui->send_message->setText("Send To Selected");
@@ -197,13 +197,13 @@ void Client::on_send_clicked()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (quint16)0;
-    if (ui->cbToAll->isChecked())
-        out << (quint8)MyClient::comMessageToAll;
+    if (ui->check_to_all->isChecked())
+        out << (quint8)My_client::com_message_to_all;
     else {
-        out << (quint8)MyClient::comMessageToUsers;
+        out << (quint8)My_client::com_message_to_users;
         QString s;
-        foreach (QListWidgetItem *i, ui->lwUsers->selectedItems())
-            s += i->text()+",";
+        foreach (QListWidgetItem *i, ui->users_list->selectedItems())
+            s = s + i->text() + ",";
         s.remove(s.length()-1, 1);
         out << s;
     }

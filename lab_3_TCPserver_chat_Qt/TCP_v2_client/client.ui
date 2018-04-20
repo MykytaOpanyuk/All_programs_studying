@@ -54,7 +54,7 @@
     <property name="geometry">
      <rect>
       <x>640</x>
-      <y>340</y>
+      <y>360</y>
       <width>89</width>
       <height>25</height>
      </rect>
@@ -67,7 +67,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>300</y>
+      <y>80</y>
       <width>89</width>
       <height>25</height>
      </rect>
@@ -80,7 +80,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>250</y>
+      <y>30</y>
       <width>171</width>
       <height>17</height>
      </rect>
@@ -93,7 +93,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>270</y>
+      <y>50</y>
       <width>201</width>
       <height>25</height>
      </rect>
@@ -136,7 +136,7 @@
     <property name="geometry">
      <rect>
       <x>530</x>
-      <y>340</y>
+      <y>360</y>
       <width>89</width>
       <height>25</height>
      </rect>
@@ -189,6 +189,19 @@
     </property>
     <property name="text">
      <string>disconnect</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="check_to_all">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>330</y>
+      <width>92</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>All users</string>
     </property>
    </widget>
   </widget>

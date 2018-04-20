@@ -1,17 +1,15 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2018-04-15T19:27:09
+# Project created by QtCreator 2018-04-16T20:51:31
 #
 #-------------------------------------------------
 
 QT       += core gui
 QT       += network
-QT       += widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-
-TARGET = TCP_v2_client
+TARGET = TCP_v2_server
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -29,17 +27,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    connection.cpp \
-    peermanager.cpp \
-    server.cpp \
-    client.cpp
+    my_client.cpp
 
 HEADERS += \
         mainwindow.h \
-    connection.h \
-    peermanager.h \
-    server.h \
-    client.h
+    my_client.h
 
 FORMS += \
         mainwindow.ui
