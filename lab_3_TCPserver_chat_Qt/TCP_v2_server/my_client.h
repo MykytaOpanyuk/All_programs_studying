@@ -1,13 +1,14 @@
 #ifndef MY_CLIENT_H
 #define MY_CLIENT_H
-
+#include <QThread>
 #include <QObject>
 #include <QDebug>
 #include <QTcpSocket>
 #include <QThreadPool>
 #include <QtGui>
 #include <QRegExp>
-//#include "my_server.h"
+#include "my_server.h"
+
 class My_server;
 
 class My_client : public QObject
@@ -16,6 +17,8 @@ class My_client : public QObject
     Q_OBJECT
 
 public:
+    QTcpSocket *socket;
+
     static const QString const_name_unknown;
     static const quint8 com_autch_request = 1;
     static const quint8 com_users_online = 2;
@@ -59,7 +62,6 @@ private slots:
     void on_error(QAbstractSocket::SocketError socketError) const;
 
 private:
-    QTcpSocket *socket;
     My_server *server;
     quint16 block_size;
     QString name;

@@ -13,10 +13,10 @@ Client::Client(QWidget *parent) :
 
     name = "";
     new_socket = new QTcpSocket(this);
-    connect(new_socket, SIGNAL(readyRead()), this, SLOT(onSokReadyRead()));
-    connect(new_socket, SIGNAL(connected()), this, SLOT(onSokConnected()));
-    connect(new_socket, SIGNAL(disconnected()), this, SLOT(onSokDisconnected()));
-    connect(new_socket, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(onSokDisplayError(QAbstractSocket::SocketError)));
+    connect(new_socket, SIGNAL(readyRead()), this, SLOT(on_socket_ready_read()));
+    connect(new_socket, SIGNAL(connected()), this, SLOT(on_socket_connected()));
+    connect(new_socket, SIGNAL(disconnected()), this, SLOT(on_socket_disconnected()));
+    connect(new_socket, SIGNAL(error(QAbstractSocket::SocketError)),this, SLOT(on_socket_display_error(QAbstractSocket::SocketError)));
 }
 
 Client::~Client()
@@ -90,7 +90,7 @@ void Client::on_socket_ready_read()
             in >> user;
             QString message;
             in >> message;
-            add_to_log("["+user+"]: " + message);
+            add_to_log("[" + user + "]: " + message);
         }
         break;
 

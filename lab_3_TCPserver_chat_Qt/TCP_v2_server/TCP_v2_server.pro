@@ -27,11 +27,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    my_client.cpp
+    my_client.cpp \
+    my_server.cpp
 
 HEADERS += \
         mainwindow.h \
-    my_client.h
+    my_client.h \
+    my_server.h
 
 FORMS += \
         mainwindow.ui

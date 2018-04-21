@@ -1,49 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "my_server.h"
 #include <QMessageBox>
+#include <QFileDialog>
 
-Server::Server(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::Server)
+Server::Server(QWidget *parent) :QMainWindow(parent), ui(new Ui::Server)
 {
     ui->setupUi(this);
 
-    QNetworkConfigurationManager manager;
-    if (manager.capabilities() & QNetworkConfigurationManager::NetworkSessionRequired) {
-        // Get saved network configuration
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-        settings.beginGroup(QLatin1String("QtNetwork"));
-        const QString id = settings.value(QLatin1String("DefaultNetworkConfiguration")).toString();
-        settings.endGroup();
+    server = new My_server(this, this);
 
-        // If the saved network configuration is not currently discovered use the system default
-        QNetworkConfiguration config = manager.configurationFromIdentifier(id);
-        if ((config.state() & QNetworkConfiguration::Discovered) !=
-            QNetworkConfiguration::Discovered) {
-            config = manager.defaultConfiguration();
-        }
+    connect(this, SIGNAL(messageFromGui(QString,QStringList)), server, SLOT(on_message_from_gui(QString,QStringList)));
+    connect(server, SIGNAL(addLogToGui(QString,QColor)), this, SLOT(on_add_log_to_gui(QString,QColor)));
 
-        networkSession = new QNetworkSession(config, this);
-        connect(networkSession, SIGNAL(opened()), this, SLOT(sessionOpened()));
-
-        networkSession->open();
-    } else {
-        sessionOpened();
+    if (server->do_start_server(QHostAddress::LocalHost, 55655)) {
+        ui->list_info->insertItem(0, QTime::currentTime().toString()+" server started at " + server->serverAddress().toString()
+                                  + ":" + QString::number(server->serverPort()));
+        ui->list_info->item(0)->setTextColor(Qt::green);
+        //ui->disconnect->setChecked(true);
     }
-
-        fortunes << tr("You've been leading a dog's life. Stay off the furniture.")
-                 << tr("You've got to think about tomorrow.")
-                 << tr("You will be surprised by a loud noise.")
-                 << tr("You will feel hungry again in another hour.")
-                 << tr("You might have mail.")
-                 << tr("You cannot kill time without injuring eternity.")
-                 << tr("Computers are not intelligent. They only think they are.");
-
-        connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(close()));
-
-        connect(tcpServer, SIGNAL(newConnection()), this, SLOT(sendFortune()));
-
-        ui->centralWidget->setWindowTitle(tr("Fortune Server"));
+    else {
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " server not started at " + server->serverAddress().toString()
+                                  + ":" + QString::number(server->serverPort()));
+        ui->list_info->item(0)->setTextColor(Qt::red);
+        ui->connect->setChecked(true);
+    }
 }
 
 Server::~Server()
@@ -51,67 +32,114 @@ Server::~Server()
     delete ui;
 }
 
-void Server::sessionOpened()
+void Server::on_add_user_to_gui(QString name)
 {
-    // Save the used configuration
-    if (networkSession) {
-        QNetworkConfiguration config = networkSession->configuration();
-        QString id;
-        if (config.type() == QNetworkConfiguration::UserChoice)
-            id = networkSession->sessionProperty(QLatin1String("UserChoiceConfiguration")).toString();
-        else
-            id = config.identifier();
+    ui->users_list->addItem(name);
+    ui->list_info->insertItem(0, QTime::currentTime().toString() + " " + name + " joined to server");
+    ui->list_info->item(0)->setTextColor(Qt::yellow);
+}
 
-        QSettings settings(QSettings::UserScope, QLatin1String("QtProject"));
-        settings.beginGroup(QLatin1String("QtNetwork"));
-        settings.setValue(QLatin1String("DefaultNetworkConfiguration"), id);
-        settings.endGroup();
+void Server::on_remove_user_from_gui(QString name)
+{
+    for (int i = 0; i < ui->users_list->count(); i++)
+        if (ui->users_list->item(i)->text() == name)
+        {
+            ui->users_list->takeItem(i);
+            ui->list_info->insertItem(0, QTime::currentTime().toString() + " " + name + " left server");
+            ui->list_info->item(0)->setTextColor(Qt::yellow);
+            break;
+        }
+}
+
+void Server::on_message_to_gui(QString message, QString from, const QStringList &users)
+{
+    if (users.isEmpty())
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " message from " + from + ": " + message + " to all");
+    else {
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " message from " + from + ": " + message +
+                                  " to " + users.join(","));
+        ui->list_info->item(0)->setTextColor(Qt::blue);
     }
+}
 
-    tcpServer = new QTcpServer(this);
-    if (!tcpServer->listen()) {
-        QMessageBox::critical(this, tr("Fortune Server"),
-                              tr("Unable to start the server: %1.")
-                              .arg(tcpServer->errorString()));
-        close();
+void Server::on_add_log_to_gui(QString string, QColor color)
+{
+    add_to_log(string, color);
+}
+
+void Server::on_send_clicked()
+{
+    if (ui->users_list->count() == 0) {
+        QMessageBox::information(this, "", "Nobody connected to server!");
         return;
     }
 
-    QString ipAddress;
-    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-    // use the first non-localhost IPv4 address
-    for (int i = 0; i < ipAddressesList.size(); ++i) {
-        if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
-            ipAddressesList.at(i).toIPv4Address()) {
-            ipAddress = ipAddressesList.at(i).toString();
-            break;
+    QStringList l;
+
+    if (!ui->checkBox->isChecked())
+        foreach (QListWidgetItem *i, ui->users_list->selectedItems())
+            l << i->text();
+    emit message_from_gui(ui->message->document()->toPlainText(), l);
+    ui->message->clear();
+    if (l.isEmpty())
+        add_to_log("Sended public server message", Qt::black);
+    else
+        add_to_log("Sended private server message to "+l.join(","), Qt::black);
+}
+
+void Server::on_check_to_all_clicked()
+{
+    if (ui->checkBox->isChecked())
+        ui->send->setText("Send To All");
+    else
+        ui->send->setText("Send To Selected");
+}
+
+
+void Server::on_connect_toggled(bool checked)
+{
+    if (checked) {
+        QHostAddress address;
+
+        if (!address.setAddress(ui->IP->text())) {
+            add_to_log(" invalid address " + ui->IP->text(), Qt::red);
+            return;
+        }
+        if (server->do_start_server(address, ui->Port->text().toShort())) {
+            add_to_log("Server started at " + ui->IP->text()+ ":" + ui->IP->text(), Qt::green);
+            //ui->connect->setEnabled(false);
+            //ui->disconnect->setEnabled(true);
+        }
+        else {
+            add_to_log("Server not started at " + ui->IP->text() + ":" + ui->Port->text(), Qt::red);
+            add_to_log("Change Port of your server!", Qt::red);
+            //ui->connect->setEnabled(true);
+            //ui->disconnect->setEnabled(false);
+            ui->connect->setChecked(true);
         }
     }
-    // if we did not find one, use IPv4 localhost
-    if (ipAddress.isEmpty())
-        ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-    ui->IP->setText(tr("IP: %1\n").arg(ipAddress));
-    ui->Port->setText(tr("Port :%1\n").arg(tcpServer->serverPort()));
+}
+
+void Server::on_disconnect_toggled(bool checked)
+{
+    if (checked) {
+        add_to_log(" server stopped at " + server->serverAddress().toString() + ":"
+                   + QString::number(server->serverPort()), Qt::green);
+        server->close();
+        //ui->connect->setEnabled(true);
+        //ui->disconnect->setEnabled(false);
+    }
 
 }
 
-void Server::sendFortune()
+void Server::add_to_log(QString text, QColor color)
 {
+    ui->list_info->insertItem(0, QTime::currentTime().toString()+text);
+    ui->list_info->item(0)->setTextColor(color);
+}
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_0);
-
-    out << (quint16)0;
-    out << fortunes.at(qrand() % fortunes.size());
-    out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
-
-    QTcpSocket *clientConnection = tcpServer->nextPendingConnection();
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
-
-    clientConnection->write(block);
-    clientConnection->disconnectFromHost();
-
+void Server::on_send_file_clicked()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Open file"), "home//", "All files (*.*)");
+    QMessageBox::information(this, tr("File name"), file_name);
 }

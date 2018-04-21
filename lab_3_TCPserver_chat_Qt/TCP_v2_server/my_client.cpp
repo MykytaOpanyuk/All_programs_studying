@@ -1,4 +1,8 @@
 #include "my_client.h"
+#include "my_server.h"
+#include "QMessageBox"
+
+const QString My_client::const_name_unknown = QString("Unknown");
 
 My_client::My_client(int descriptor, My_server *current_server, QObject *parent) :QObject(parent)
 {
@@ -35,7 +39,7 @@ void My_client::on_disconnect()
     deleteLater();
 }
 
-void My_client::onError(QAbstractSocket::SocketError socketError) const
+void My_client::on_error(QAbstractSocket::SocketError socketError) const
 {
     QWidget w;
     switch (socketError) {
@@ -52,10 +56,10 @@ void My_client::onError(QAbstractSocket::SocketError socketError) const
     }
 }
 
-void My_client::onReadyRead()
+void My_client::on_ready_read()
 {
     QDataStream in(socket);
-    if (block_Size == 0) {
+    if (block_size == 0) {
         if (socket->bytesAvailable() < (int)sizeof(quint16))
             return;
         in >> block_size;
@@ -71,20 +75,20 @@ void My_client::onReadyRead()
     in >> command;
     qDebug() << "Received command " << command;
 
-    if (!is_autched && command != com_autch_Request)
+    if ((!is_autched) && (command != com_autch_request))
         return;
 
     switch(command) {
-        case com_Autch_request: {
+        case com_autch_request: {
             QString name;
             in >> name;
 
             if (server->is_name_valid(name)) {
-                do_Send_command(com_err_name_invalid);
+                do_send_command(com_error_name_invalid);
                 return;
             }
             if (server->is_name_used(name)) {
-                do_send_command(com_err_name_used);
+                do_send_command(com_error_name_used);
                 return;
             }
             name = name;
