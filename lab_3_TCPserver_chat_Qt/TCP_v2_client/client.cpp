@@ -3,6 +3,7 @@
 #include <QHostInfo>
 #include <QMessageBox>
 #include <QTime>
+#include <QFileDialog>
 #include <QTcpSocket>
 
 Client::Client(QWidget *parent) :
@@ -101,6 +102,33 @@ void Client::on_socket_ready_read()
             QString message;
             in >> message;
             add_to_log("[" + user + "](private): " + message, Qt::blue);
+        }
+        break;
+        case My_client::com_file_to_all:
+        {
+            QString user;
+            QByteArray file_data;
+            in >> user;
+            in >> file_data;
+            QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
+            QFile file(file_name);
+            file.open(QIODevice::WriteOnly);
+            file.write(file_data);
+            add_to_log("[" + user + "](file): " + file_name);
+        }
+        break;
+
+        case My_client::com_file_to_users:
+        {
+            QString user;
+            QByteArray file_data;
+            in >> user;
+            in >> file_data;
+            QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
+            QFile file(file_name);
+            file.open(QIODevice::WriteOnly);
+            file.write(file_data);
+            add_to_log("[" + user + "](file): " + file_name, Qt::blue);
         }
         break;
         case My_client::com_private_server_message:
@@ -218,4 +246,31 @@ void Client::add_to_log(QString text, QColor color)
 {
     ui->chat->insertItem(0, QTime::currentTime().toString() + " " + text);
     ui->chat->item(0)->setTextColor(color);
+}
+
+void Client::on_send_message_clicked()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Open file"), "home//", "All files (*.*)");
+    QMessageBox::information(this, tr("File name"), file_name);
+    QFile new_file(file_name);
+
+    if (!ui->check_to_all->isChecked())
+        out << (quint8)My_client::com_message_to_all;
+    else {
+        out << (quint8)My_client::com_message_to_users;
+        QString s;
+        foreach (QListWidgetItem *i, ui->users_list->selectedItems())
+            s = s + i->text() + ",";
+        s.remove(s.length()-1, 1);
+        out << s;
+    }
+
+    block = new_file.readAll();
+    out << (quint16)0 << My_client::com_private_server_file << block;
+    out.device()->seek(0);
+    out << (quint16)(block.size() - sizeof(quint16));
+    new_socket->write(block);
 }

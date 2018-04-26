@@ -3,6 +3,7 @@
 #include "my_server.h"
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QFile>
 
 Server::Server(QWidget *parent) :QMainWindow(parent), ui(new Ui::Server)
 {
@@ -10,8 +11,11 @@ Server::Server(QWidget *parent) :QMainWindow(parent), ui(new Ui::Server)
 
     server = new My_server(this, this);
 
-    connect(this, SIGNAL(messageFromGui(QString,QStringList)), server, SLOT(on_message_from_gui(QString,QStringList)));
-    connect(server, SIGNAL(addLogToGui(QString,QColor)), this, SLOT(on_add_log_to_gui(QString,QColor)));
+    connect(this, SIGNAL(message_from_gui(QString,QStringList)), server, SLOT(on_message_from_gui(QString,QStringList)));
+    connect(this, SIGNAL(file_from_gui(QFile*,QStringList)), server, SLOT(on_file_from_gui(QFile*,QStringList)));
+    connect(server, SIGNAL(add_file_to_gui(QFile*,QString,const QStringList&)), server, SLOT(on_file_to_gui(
+           QFile *, QString, const QStringList &)));
+    connect(server, SIGNAL(add_log_to_gui(QString,QColor)), this, SLOT(on_add_log_to_gui(QString,QColor)));
 
     if (server->do_start_server(QHostAddress::LocalHost, 55655)) {
         ui->list_info->insertItem(0, QTime::currentTime().toString()+" server started at " + server->serverAddress().toString()
@@ -57,6 +61,17 @@ void Server::on_message_to_gui(QString message, QString from, const QStringList 
         ui->list_info->insertItem(0, QTime::currentTime().toString() + " message from " + from + ": " + message + " to all");
     else {
         ui->list_info->insertItem(0, QTime::currentTime().toString() + " message from " + from + ": " + message +
+                                  " to " + users.join(","));
+        ui->list_info->item(0)->setTextColor(Qt::blue);
+    }
+}
+
+void Server::on_file_to_gui(QFile *new_file, QString from, const QStringList &users)
+{
+    if (users.isEmpty())
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + new_file->fileName() + " to all");
+    else {
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + new_file->fileName() +
                                   " to " + users.join(","));
         ui->list_info->item(0)->setTextColor(Qt::blue);
     }
@@ -142,4 +157,17 @@ void Server::on_send_file_clicked()
 {
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open file"), "home//", "All files (*.*)");
     QMessageBox::information(this, tr("File name"), file_name);
+    if (file_name.isNull())
+        return;
+    QFile *new_file = new QFile(file_name);
+    QStringList l;
+
+    if (!ui->checkBox->isChecked())
+        foreach (QListWidgetItem *i, ui->users_list->selectedItems())
+            l << i->text();
+    emit file_from_gui(new_file, l);
+    if (l.isEmpty())
+        add_to_log("Sended public server file", Qt::black);
+    else
+        add_to_log("Sended private server file to " + l.join(","), Qt::black);
 }

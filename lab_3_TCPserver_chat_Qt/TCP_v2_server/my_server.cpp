@@ -59,7 +59,7 @@ void My_server::do_send_to_all_message(QString message, QString from_username)
         if (clients.at(i)->get_autched())
             clients.at(i)->socket->write(block);
 }
-
+//public
 void My_server::do_send_to_all_server_message(QString message)
 {
     QByteArray block;
@@ -72,11 +72,57 @@ void My_server::do_send_to_all_server_message(QString message)
             clients.at(i)->socket->write(block);
 }
 
+void My_server::do_send_to_all_file(QFile *new_file, QString from_username)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+
+    new_file->open(QIODevice::ReadOnly);
+    out << (quint16)0 << My_client::com_file_to_all << from_username << new_file->readAll();
+    new_file->close();
+    out.device()->seek(0);
+    out << (quint16)(block.size() - sizeof(quint16));
+
+    for (int i = 0; i < clients.length(); i++)
+        if (clients.at(i)->get_autched())
+            clients.at(i)->socket->write(block);
+}
+
+void My_server::do_send_to_all_server_file(QFile *new_file)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+
+    new_file->open(QIODevice::ReadOnly);
+    out << (quint16)0 << My_client::com_public_server_file << new_file->readAll();
+    new_file->close();
+    out.device()->seek(0);
+    out << (quint16)(block.size() - sizeof(quint16));
+    for (int i = 0; i < clients.length(); ++i)
+        if (clients.at(i)->get_autched())
+            clients.at(i)->socket->write(block);
+}
+//private
 void My_server::do_send_server_message_to_users(QString message, const QStringList &users)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (quint16)0 << My_client::com_private_server_message << message;
+    out.device()->seek(0);
+    out << (quint16)(block.size() - sizeof(quint16));
+    for (int j = 0; j < clients.length(); ++j)
+        if (users.contains(clients.at(j)->get_name()))
+            clients.at(j)->socket->write(block);
+}
+
+void My_server::do_send_server_file_to_users(QFile *new_file, const QStringList &users)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+
+    new_file->open(QIODevice::ReadOnly);
+    out << (quint16)0 << My_client::com_private_server_file << new_file->readAll();
+    new_file->close();
     out.device()->seek(0);
     out << (quint16)(block.size() - sizeof(quint16));
     for (int j = 0; j < clients.length(); ++j)
@@ -94,6 +140,28 @@ void My_server::do_send_message_to_users(QString message, const QStringList &use
 
     QDataStream outToSender(&blockToSender, QIODevice::WriteOnly);
     outToSender << (quint16)0 << My_client::com_message_to_users << users.join(",") << message;
+    outToSender.device()->seek(0);
+    outToSender << (quint16)(blockToSender.size() - sizeof(quint16));
+    for (int j = 0; j < clients.length(); ++j)
+        if (users.contains(clients.at(j)->get_name()))
+            clients.at(j)->socket->write(block);
+        else if (clients.at(j)->get_name() == from_username)
+            clients.at(j)->socket->write(blockToSender);
+}
+
+void My_server::do_send_file_to_users(QFile *new_file, const QStringList &users, QString from_username)
+{
+    QByteArray block, blockToSender;
+    QDataStream out(&block, QIODevice::WriteOnly);
+
+    new_file->open(QIODevice::ReadOnly);
+    out << (quint16)0 << My_client::com_file_to_users << from_username << new_file->readAll();
+    new_file->close();
+    out.device()->seek(0);
+    out << (quint16)(block.size() - sizeof(quint16));
+
+    QDataStream outToSender(&blockToSender, QIODevice::WriteOnly);
+    outToSender << (quint16)0 << My_client::com_file_to_users << users.join(",") << new_file->readAll();
     outToSender.device()->seek(0);
     outToSender << (quint16)(blockToSender.size() - sizeof(quint16));
     for (int j = 0; j < clients.length(); ++j)
@@ -132,11 +200,11 @@ void My_server::incomingConnection(qintptr handle)
 {
 
     My_client *client = new My_client(handle, this, this);
-    if (widget != 0)
-    {
-        connect(client, SIGNAL(addUserToGui(QString)), widget, SLOT(on_add_user_to_gui(QString)));
-        connect(client, SIGNAL(removeUserFromGui(QString)), widget, SLOT(on_remove_user_from_gui(QString)));
-        connect(client, SIGNAL(messageToGui(QString,QString,QStringList)), widget, SLOT(on_message_to_gui(QString,QString,QStringList)));
+    if (widget != 0) {
+        connect(client, SIGNAL(add_user_to_gui(QString)), widget, SLOT(on_add_user_to_gui(QString)));
+        connect(client, SIGNAL(remove_user_from_gui(QString)), widget, SLOT(on_remove_user_from_gui(QString)));
+        connect(client, SIGNAL(message_to_gui(QString,QString,QStringList)), widget, SLOT(on_message_to_gui(QString,QString,QStringList)));
+        connect(client, SIGNAL(add_file_to_gui(QFile*,QString,QStringList)), widget, SLOT(on_file_to_gui(QFile*,QString,QStringList)));
     }
     connect(client, SIGNAL(removeuser(My_client*)), this, SLOT(on_remove_user(My_client*)));
     clients.append(client);
@@ -154,3 +222,12 @@ void My_server::on_message_from_gui(QString message, const QStringList &users)
     else
         do_send_server_message_to_users(message, users);
 }
+
+void My_server::on_file_from_gui(QFile *new_file, const QStringList &users)
+{
+    if (users.isEmpty())
+        do_send_to_all_server_file(new_file);
+    else
+        do_send_server_file_to_users(new_file, users);
+}
+

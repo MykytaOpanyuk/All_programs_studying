@@ -1,6 +1,7 @@
 #include "my_client.h"
 #include "my_server.h"
 #include "QMessageBox"
+#include <QFileDialog>
 
 const QString My_client::const_name_unknown = QString("Unknown");
 
@@ -96,6 +97,34 @@ void My_client::on_ready_read()
             do_send_users_online();
             emit add_user_to_gui(name);
             server->do_send_to_all_user_join(name);
+        }
+        break;
+        case com_file_to_all: {
+            QByteArray nextByte;
+            //QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home", "All files (*.*)");
+            in >> nextByte;
+            QFile *new_file = new QFile("file_name");
+            new_file->open(QIODevice::WriteOnly);
+            new_file->write(nextByte);
+            new_file->close();
+            server->do_send_to_all_file(new_file, name);
+            emit add_file_to_gui(new_file, name, QStringList());
+        }
+        break;
+        case com_file_to_users: {
+            QString users_in;
+            QByteArray nextByte;
+            in >> users_in;
+            //QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), "/home", "All files (*.*)");
+            in >> nextByte;
+            QFile *new_file = new QFile("file_name");
+            new_file->open(QIODevice::WriteOnly);
+            new_file->write(nextByte);
+            new_file->close();
+
+            QStringList users = users_in.split(",");
+            server->do_send_file_to_users(new_file, users, name);
+            emit add_file_to_gui(new_file, name, users);
         }
         break;
         case com_message_to_all: {

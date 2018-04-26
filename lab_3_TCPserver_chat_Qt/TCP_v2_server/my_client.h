@@ -29,6 +29,10 @@ public:
     static const quint8 com_public_server_message = 7;
     static const quint8 com_private_server_message = 8;
     static const quint8 com_autch_success = 9;
+    static const quint8 com_file_to_all = 10;
+    static const quint8 com_file_to_users = 11;
+    static const quint8 com_public_server_file = 12;
+    static const quint8 com_private_server_file = 13;
     static const quint8 com_error_name_invalid = 201;
     static const quint8 com_error_name_used = 202;
 
@@ -54,6 +58,7 @@ signals:
     void remove_user_from_gui(QString name);
     void remove_user(My_client *client);
     void message_to_gui(QString message, QString from, const QStringList &users);
+    void add_file_to_gui(QFile *new_file, QString from, const QStringList &users);
 
 private slots:
     void on_connect() {};

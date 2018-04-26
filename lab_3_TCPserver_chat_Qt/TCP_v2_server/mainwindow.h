@@ -29,11 +29,13 @@ private:
 
 signals:
     void message_from_gui(QString message, const QStringList &users);
+    void file_from_gui(QFile *new_file, const QStringList &users);
 
 public slots:
     void on_add_user_to_gui(QString name);
     void on_remove_user_from_gui(QString name);
     void on_message_to_gui(QString message, QString from, const QStringList &users);
+    void on_file_to_gui(QFile *new_file, QString from, const QStringList &users);
     void on_add_log_to_gui(QString string, QColor color);
 
 private slots:

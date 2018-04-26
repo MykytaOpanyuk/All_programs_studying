@@ -39,6 +39,8 @@ private slots:
     void on_send_to_all_clicked();
     void on_send_clicked();
 
+    void on_send_message_clicked();
+
 private:
     Ui::Client *ui;
     QTcpSocket *new_socket;
