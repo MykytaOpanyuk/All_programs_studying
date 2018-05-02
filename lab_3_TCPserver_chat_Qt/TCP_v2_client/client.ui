@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>GClient</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLineEdit" name="adress">
@@ -61,19 +61,6 @@
     </property>
     <property name="text">
      <string>Send file</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="save">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>80</y>
-      <width>89</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>save</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_4">

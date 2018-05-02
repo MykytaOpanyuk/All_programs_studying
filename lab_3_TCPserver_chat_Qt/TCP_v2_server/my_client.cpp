@@ -35,7 +35,7 @@ void My_client::on_disconnect()
     if (is_autched) {
         emit remove_user_from_gui(name);
         server->do_send_to_all_user_left(name);
-        emit remove_user(this);
+        emit removeUser(this);
     }
     deleteLater();
 }
@@ -47,7 +47,7 @@ void My_client::on_error(QAbstractSocket::SocketError socketError) const
     case QAbstractSocket::RemoteHostClosedError:
         break;
     case QAbstractSocket::HostNotFoundError:
-        QMessageBox::information(&w, "Error", "The host was not found");
+        QMessageBox::information(&w, "Error", "The host was not found.");
         break;
     case QAbstractSocket::ConnectionRefusedError:
         QMessageBox::information(&w, "Error", "The connection was refused by the peer.");
@@ -81,50 +81,69 @@ void My_client::on_ready_read()
 
     switch(command) {
         case com_autch_request: {
-            QString name;
-            in >> name;
+            QString new_name;
+            in >> new_name;
 
-            if (server->is_name_valid(name)) {
+            if (server->is_name_valid(new_name)) {
                 do_send_command(com_error_name_invalid);
                 return;
             }
-            if (server->is_name_used(name)) {
+            if (server->is_name_used(new_name)) {
                 do_send_command(com_error_name_used);
                 return;
             }
-            name = name;
+            name = new_name;
             is_autched = true;
             do_send_users_online();
-            emit add_user_to_gui(name);
+            emit add_user_to_gui(new_name);
             server->do_send_to_all_user_join(name);
         }
         break;
         case com_file_to_all: {
+            QString file_name;
             QByteArray nextByte;
             //QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home", "All files (*.*)");
+            in >> file_name;
             in >> nextByte;
-            QFile *new_file = new QFile("file_name");
+            QFile *new_file = new QFile(file_name);
             new_file->open(QIODevice::WriteOnly);
             new_file->write(nextByte);
             new_file->close();
             server->do_send_to_all_file(new_file, name);
             emit add_file_to_gui(new_file, name, QStringList());
+            delete new_file;
         }
         break;
         case com_file_to_users: {
             QString users_in;
-            QByteArray nextByte;
+            //char *file_name, *file_data;
+            QString file_name;
+            QByteArray file_data;
+            //quint16 file_name_size;
+            //quint64 file_size;
+            //QByteArray data_byte;
+
             in >> users_in;
-            //QString file_name = QFileDialog::getSaveFileName(this, tr("Save File"), "/home", "All files (*.*)");
-            in >> nextByte;
-            QFile *new_file = new QFile("file_name");
+            //in >> file_name_size;
+            //file_name = new char[file_name_size];
+            //in.readRawData(file_name, file_name_size);
+            in >> file_name;
+            //data_byte.append(file_name, file_name_size);
+            //in >> file_size;
+            //file_data = new char[file_size];
+            //in.readBytes(file_data, file_size);
+            in >> file_data;
+            QFile *new_file = new QFile(file_name);
+
             new_file->open(QIODevice::WriteOnly);
-            new_file->write(nextByte);
+            QTextStream outstream(new_file);
+            outstream << file_data;
             new_file->close();
 
             QStringList users = users_in.split(",");
             server->do_send_file_to_users(new_file, users, name);
             emit add_file_to_gui(new_file, name, users);
+            delete new_file;
         }
         break;
         case com_message_to_all: {

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>752</width>
-    <height>533</height>
+    <height>573</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,8 +43,8 @@
    <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>440</y>
+      <x>490</x>
+      <y>430</y>
       <width>191</width>
       <height>17</height>
      </rect>
@@ -67,9 +67,9 @@
     <property name="geometry">
      <rect>
       <x>500</x>
-      <y>30</y>
+      <y>40</y>
       <width>241</width>
-      <height>151</height>
+      <height>241</height>
      </rect>
     </property>
    </widget>
@@ -137,8 +137,8 @@
    <widget class="QCheckBox" name="checkBox">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>380</y>
+      <x>490</x>
+      <y>350</y>
       <width>121</width>
       <height>23</height>
      </rect>
@@ -150,8 +150,8 @@
    <widget class="QPushButton" name="send">
     <property name="geometry">
      <rect>
-      <x>480</x>
-      <y>410</y>
+      <x>490</x>
+      <y>390</y>
       <width>89</width>
       <height>25</height>
      </rect>
@@ -163,8 +163,8 @@
    <widget class="QPushButton" name="send_file">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>410</y>
+      <x>590</x>
+      <y>390</y>
       <width>89</width>
       <height>25</height>
      </rect>
@@ -176,7 +176,7 @@
    <widget class="QLabel" name="IP">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>40</x>
       <y>40</y>
       <width>67</width>
       <height>17</height>
@@ -186,37 +186,17 @@
      <string>127.0.0.1</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="Port">
+   <widget class="QLabel" name="port">
     <property name="geometry">
      <rect>
-      <x>50</x>
+      <x>60</x>
       <y>60</y>
-      <width>113</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>500</x>
-      <y>190</y>
-      <width>141</width>
+      <width>67</width>
       <height>17</height>
      </rect>
     </property>
     <property name="text">
-     <string>List of files :</string>
-    </property>
-   </widget>
-   <widget class="QListWidget" name="file_list">
-    <property name="geometry">
-     <rect>
-      <x>500</x>
-      <y>210</y>
-      <width>241</width>
-      <height>151</height>
-     </rect>
+     <string>55655</string>
     </property>
    </widget>
   </widget>

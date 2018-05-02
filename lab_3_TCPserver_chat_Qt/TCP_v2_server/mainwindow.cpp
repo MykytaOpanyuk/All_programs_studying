@@ -12,22 +12,20 @@ Server::Server(QWidget *parent) :QMainWindow(parent), ui(new Ui::Server)
     server = new My_server(this, this);
 
     connect(this, SIGNAL(message_from_gui(QString,QStringList)), server, SLOT(on_message_from_gui(QString,QStringList)));
-    connect(this, SIGNAL(file_from_gui(QFile*,QStringList)), server, SLOT(on_file_from_gui(QFile*,QStringList)));
+    connect(this, SIGNAL(file_from_gui(QString, QStringList)), server, SLOT(on_file_from_gui(QString,QStringList)));
     connect(server, SIGNAL(add_file_to_gui(QFile*,QString,const QStringList&)), server, SLOT(on_file_to_gui(
-           QFile *, QString, const QStringList &)));
+           QFile*, QString, const QStringList &)));
     connect(server, SIGNAL(add_log_to_gui(QString,QColor)), this, SLOT(on_add_log_to_gui(QString,QColor)));
 
     if (server->do_start_server(QHostAddress::LocalHost, 55655)) {
-        ui->list_info->insertItem(0, QTime::currentTime().toString()+" server started at " + server->serverAddress().toString()
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " server has started at " + server->serverAddress().toString()
                                   + ":" + QString::number(server->serverPort()));
         ui->list_info->item(0)->setTextColor(Qt::green);
-        //ui->disconnect->setChecked(true);
     }
     else {
-        ui->list_info->insertItem(0, QTime::currentTime().toString() + " server not started at " + server->serverAddress().toString()
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " server didn`t start at " + server->serverAddress().toString()
                                   + ":" + QString::number(server->serverPort()));
         ui->list_info->item(0)->setTextColor(Qt::red);
-        ui->connect->setChecked(true);
     }
 }
 
@@ -46,8 +44,7 @@ void Server::on_add_user_to_gui(QString name)
 void Server::on_remove_user_from_gui(QString name)
 {
     for (int i = 0; i < ui->users_list->count(); i++)
-        if (ui->users_list->item(i)->text() == name)
-        {
+        if (ui->users_list->item(i)->text() == name) {
             ui->users_list->takeItem(i);
             ui->list_info->insertItem(0, QTime::currentTime().toString() + " " + name + " left server");
             ui->list_info->item(0)->setTextColor(Qt::yellow);
@@ -66,12 +63,12 @@ void Server::on_message_to_gui(QString message, QString from, const QStringList 
     }
 }
 
-void Server::on_file_to_gui(QFile *new_file, QString from, const QStringList &users)
+void Server::on_file_to_gui(QString file_name, QString from, const QStringList &users)
 {
     if (users.isEmpty())
-        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + new_file->fileName() + " to all");
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + file_name + " to all");
     else {
-        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + new_file->fileName() +
+        ui->list_info->insertItem(0, QTime::currentTime().toString() + " file from " + from + ": " + file_name +
                                   " to " + users.join(","));
         ui->list_info->item(0)->setTextColor(Qt::blue);
     }
@@ -111,40 +108,30 @@ void Server::on_check_to_all_clicked()
 }
 
 
-void Server::on_connect_toggled(bool checked)
+void Server::on_connect_clicked()
 {
-    if (checked) {
-        QHostAddress address;
+    QHostAddress address;
 
-        if (!address.setAddress(ui->IP->text())) {
-            add_to_log(" invalid address " + ui->IP->text(), Qt::red);
-            return;
-        }
-        if (server->do_start_server(address, ui->Port->text().toShort())) {
-            add_to_log("Server started at " + ui->IP->text()+ ":" + ui->IP->text(), Qt::green);
-            //ui->connect->setEnabled(false);
-            //ui->disconnect->setEnabled(true);
-        }
-        else {
-            add_to_log("Server not started at " + ui->IP->text() + ":" + ui->Port->text(), Qt::red);
-            add_to_log("Change Port of your server!", Qt::red);
-            //ui->connect->setEnabled(true);
-            //ui->disconnect->setEnabled(false);
-            ui->connect->setChecked(true);
-        }
+    if (!address.setAddress(ui->IP->text())) {
+        add_to_log(" invalid address " + ui->IP->text(), Qt::red);
+        return;
+    }
+
+    if (server->do_start_server(address, server->serverPort())) {
+        ui->port->setText(QString::number(server->serverPort()));
+        add_to_log("Server has started at " + ui->IP->text()+ ":" + server->serverPort(), Qt::green);
+    }
+    else {
+        add_to_log("Server didn't start at " + ui->IP->text() + ":" + server->serverPort(), Qt::red);
+        add_to_log("Change Port of your server!", Qt::red);
     }
 }
 
-void Server::on_disconnect_toggled(bool checked)
+void Server::on_disconnect_clicked()
 {
-    if (checked) {
-        add_to_log(" server stopped at " + server->serverAddress().toString() + ":"
-                   + QString::number(server->serverPort()), Qt::green);
-        server->close();
-        //ui->connect->setEnabled(true);
-        //ui->disconnect->setEnabled(false);
-    }
-
+    add_to_log(" server has stopped at " + server->serverAddress().toString() + ":"
+               + QString::number(server->serverPort()), Qt::green);
+    server->close();
 }
 
 void Server::add_to_log(QString text, QColor color)
@@ -159,13 +146,13 @@ void Server::on_send_file_clicked()
     QMessageBox::information(this, tr("File name"), file_name);
     if (file_name.isNull())
         return;
-    QFile *new_file = new QFile(file_name);
+    //QFile new_file(file_name);
     QStringList l;
 
     if (!ui->checkBox->isChecked())
         foreach (QListWidgetItem *i, ui->users_list->selectedItems())
             l << i->text();
-    emit file_from_gui(new_file, l);
+    emit file_from_gui(file_name, l);
     if (l.isEmpty())
         add_to_log("Sended public server file", Qt::black);
     else

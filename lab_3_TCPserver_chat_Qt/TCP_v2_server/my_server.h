@@ -9,11 +9,13 @@ class My_client;
 
 class My_server : public QTcpServer
 {
+    Q_OBJECT
+
 public:
     explicit My_server(QWidget *new_widget = 0, QObject *parent = 0);
     bool do_start_server(QHostAddress address, qint16 port);
     void do_send_to_all_user_join(QString name);// when somebody join server
-    void do_send_to_all_user_left(QString name);// when somebody keft server
+    void do_send_to_all_user_left(QString name);// when somebody left server
     void do_send_to_all_message(QString message, QString from_username); // message from user to all
     void do_send_to_all_server_message(QString message); // server message to all
     void do_send_to_all_file(QFile *new_file, QString from_username); // file from user to all
@@ -34,7 +36,7 @@ signals:
 
 public slots:
     void on_message_from_gui(QString message, const QStringList &users);
-    void on_file_from_gui(QFile *new_file, const QStringList &users);
+    void on_file_from_gui(QString file_name, const QStringList &users);
     void on_remove_user(My_client *client);
 
 protected:

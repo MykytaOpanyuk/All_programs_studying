@@ -9,16 +9,8 @@
 #include "../TCP_v2_server/my_client.h"
 
 namespace Ui {
-class Client;
+    class Client;
 }
-
-class QComboBox;
-class QDialogButtonBox;
-class QLabel;
-class QLineEdit;
-class QPushButton;
-class QTcpSocket;
-class QNetworkSession;
 
 class Client : public QMainWindow
 {
@@ -37,9 +29,9 @@ private slots:
     void on_connect_clicked();
     void on_disconnect_clicked();
     void on_send_to_all_clicked();
-    void on_send_clicked();
-
     void on_send_message_clicked();
+
+    void on_Send_file_clicked();
 
 private:
     Ui::Client *ui;

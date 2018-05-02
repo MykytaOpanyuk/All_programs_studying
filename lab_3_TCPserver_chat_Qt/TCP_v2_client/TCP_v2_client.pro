@@ -25,12 +25,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        client.cpp \
-    pop_window.cpp
+        client.cpp
 
 HEADERS += \
-        client.h \
-    pop_window.h
+        client.h
 
 FORMS += \
         client.ui

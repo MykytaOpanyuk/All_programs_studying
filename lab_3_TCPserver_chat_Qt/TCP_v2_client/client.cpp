@@ -1,10 +1,11 @@
-#include "client.h"
+﻿#include "client.h"
 #include "ui_client.h"
 #include <QHostInfo>
 #include <QMessageBox>
 #include <QTime>
 #include <QFileDialog>
 #include <QTcpSocket>
+#include <QtGui>
 
 Client::Client(QWidget *parent) :
     QMainWindow(parent),
@@ -106,11 +107,15 @@ void Client::on_socket_ready_read()
         break;
         case My_client::com_file_to_all:
         {
-            QString user;
+            QString user, old_file_name;
             QByteArray file_data;
             in >> user;
+            in >> old_file_name;
             in >> file_data;
+            QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
+            if (file_name.isNull())
+                return;
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
             file.write(file_data);
@@ -121,13 +126,21 @@ void Client::on_socket_ready_read()
         case My_client::com_file_to_users:
         {
             QString user;
+            QString old_file_name;
             QByteArray file_data;
+
             in >> user;
+            in >> old_file_name;
             in >> file_data;
-            QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
+            QMessageBox::information(this, tr("New file"), old_file_name);
+            QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", file_name);
+            if (file_name.isNull())
+                return;
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
             file.write(file_data);
+            file.close();
+
             add_to_log("[" + user + "](file): " + file_name, Qt::blue);
         }
         break;
@@ -199,17 +212,19 @@ void Client::on_socket_disconnected()
     ui->disconnect->setEnabled(false);
     ui->send_message->setEnabled(false);
     ui->users_list->clear();
-    add_to_log("Disconnected from" + new_socket->peerAddress().toString() + ":" + QString::number(new_socket->peerPort()), Qt::green);
+    add_to_log("Disconnected from " + new_socket->peerAddress().toString() + ":" + QString::number(new_socket->peerPort()), Qt::green);
 }
 
 void Client::on_connect_clicked()
 {
     new_socket->connectToHost(ui->adress->text(), ui->port->text().toUShort());
+    ui->connect->setEnabled(false);
 }
 
 void Client::on_disconnect_clicked()
 {
     new_socket->disconnectFromHost();
+    ui->connect->setEnabled(true);
 }
 
 void Client::on_send_to_all_clicked()
@@ -220,7 +235,7 @@ void Client::on_send_to_all_clicked()
         ui->send_message->setText("Send To Selected");
 }
 
-void Client::on_send_clicked()
+void Client::on_send_message_clicked()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -232,7 +247,7 @@ void Client::on_send_clicked()
         QString s;
         foreach (QListWidgetItem *i, ui->users_list->selectedItems())
             s = s + i->text() + ",";
-        s.remove(s.length()-1, 1);
+        s.remove(s.length() - 1, 1);
         out << s;
     }
     out << ui->message->document()->toPlainText();
@@ -248,28 +263,33 @@ void Client::add_to_log(QString text, QColor color)
     ui->chat->item(0)->setTextColor(color);
 }
 
-void Client::on_send_message_clicked()
+void Client::on_Send_file_clicked()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
+    out << (quint16)0;
 
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open file"), "home//", "All files (*.*)");
     QMessageBox::information(this, tr("File name"), file_name);
     QFile new_file(file_name);
+    new_file.open(QIODevice::ReadOnly | QIODevice::Text);
 
-    if (!ui->check_to_all->isChecked())
-        out << (quint8)My_client::com_message_to_all;
+    if (ui->check_to_all->isChecked())
+        out << (quint8)My_client::com_file_to_all;
     else {
-        out << (quint8)My_client::com_message_to_users;
+        out << (quint8)My_client::com_file_to_users;
         QString s;
         foreach (QListWidgetItem *i, ui->users_list->selectedItems())
             s = s + i->text() + ",";
-        s.remove(s.length()-1, 1);
+        s.remove(s.length() - 1, 1);
         out << s;
     }
+    QByteArray file_data = new_file.readAll();
 
-    block = new_file.readAll();
-    out << (quint16)0 << My_client::com_private_server_file << block;
+    out << new_file.fileName();
+    out << file_data;
+    new_socket->waitForBytesWritten(-1);
+    new_file.close();
     out.device()->seek(0);
     out << (quint16)(block.size() - sizeof(quint16));
     new_socket->write(block);
