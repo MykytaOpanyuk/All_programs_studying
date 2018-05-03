@@ -61,13 +61,13 @@ void My_client::on_ready_read()
 {
     QDataStream in(socket);
     if (block_size == 0) {
-        if (socket->bytesAvailable() < (int)sizeof(quint16))
+        if (socket->bytesAvailable() < (qint64)sizeof(quint64))
             return;
         in >> block_size;
         qDebug() << "block_size now " << block_size;
     }
 
-    if (socket->bytesAvailable() < block_size)
+    if (socket->bytesAvailable() < (qint64)block_size)
         return;
     else
         block_size = 0;
@@ -84,7 +84,7 @@ void My_client::on_ready_read()
             QString new_name;
             in >> new_name;
 
-            if (server->is_name_valid(new_name)) {
+            if (!server->is_name_valid(new_name)) {
                 do_send_command(com_error_name_invalid);
                 return;
             }
@@ -116,34 +116,28 @@ void My_client::on_ready_read()
         break;
         case com_file_to_users: {
             QString users_in;
-            //char *file_name, *file_data;
+            char *file_data;
             QString file_name;
-            QByteArray file_data;
-            //quint16 file_name_size;
-            //quint64 file_size;
-            //QByteArray data_byte;
+            QByteArray file_byte_array;
+            quint64 file_size;
 
             in >> users_in;
-            //in >> file_name_size;
-            //file_name = new char[file_name_size];
-            //in.readRawData(file_name, file_name_size);
             in >> file_name;
-            //data_byte.append(file_name, file_name_size);
-            //in >> file_size;
-            //file_data = new char[file_size];
-            //in.readBytes(file_data, file_size);
-            in >> file_data;
+            in >> file_size;
+            file_data = new char[file_size];
+            in.readRawData(file_data, file_size);
+            file_byte_array.append(file_data, file_size);
             QFile *new_file = new QFile(file_name);
 
             new_file->open(QIODevice::WriteOnly);
             QTextStream outstream(new_file);
-            outstream << file_data;
+            outstream << file_byte_array;
             new_file->close();
 
             QStringList users = users_in.split(",");
             server->do_send_file_to_users(new_file, users, name);
             emit add_file_to_gui(new_file, name, users);
-            delete new_file;
+            delete[] file_data;
         }
         break;
         case com_message_to_all: {
@@ -172,10 +166,10 @@ void My_client::do_send_command(quint8 comm) const
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0;
+    out << (quint64)0;
     out << comm;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     socket->write(block);
     qDebug() << "Send to" << name << "command:" << comm;
 }
@@ -184,7 +178,7 @@ void My_client::do_send_users_online() const
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0;
+    out << (quint64)0;
     out << com_users_online;
     QStringList l = server->get_users_online();
     QString s;
@@ -194,7 +188,7 @@ void My_client::do_send_users_online() const
     s.remove(s.length() - 1, 1);
     out << s;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     socket->write(block);
     qDebug() << "Send user list to" << name << ":" << s;
 }

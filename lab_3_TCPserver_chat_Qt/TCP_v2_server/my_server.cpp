@@ -26,10 +26,10 @@ void My_server::do_send_to_all_user_join(QString name)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
 
-    out << (quint16)0 << My_client::com_user_join << name;
+    out << (quint64)0 << My_client::com_user_join << name;
 
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
 
     for (int i = 0; i < clients.length(); ++i)
         if ((clients.at(i)->get_name() != name) && (clients.at(i)->get_autched()))
@@ -40,9 +40,9 @@ void My_server::do_send_to_all_user_left(QString name)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0 << My_client::com_user_left << name;
+    out << (quint64)0 << My_client::com_user_left << name;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int i = 0; i < clients.length(); ++i)
         if (clients.at(i)->get_name() != name && clients.at(i)->get_autched())
             clients.at(i)->socket->write(block);
@@ -52,9 +52,9 @@ void My_server::do_send_to_all_message(QString message, QString from_username)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0 << My_client::com_message_to_all << from_username << message;
+    out << (quint64)0 << My_client::com_message_to_all << from_username << message;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int i = 0; i < clients.length(); ++i)
         if (clients.at(i)->get_autched())
             clients.at(i)->socket->write(block);
@@ -64,9 +64,9 @@ void My_server::do_send_to_all_server_message(QString message)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0 << My_client::com_public_server_message << message;
+    out << (quint64)0 << My_client::com_public_server_message << message;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int i = 0; i < clients.length(); ++i)
         if (clients.at(i)->get_autched())
             clients.at(i)->socket->write(block);
@@ -79,11 +79,13 @@ void My_server::do_send_to_all_file(QFile *new_file, QString from_username)
 
     new_file->open(QIODevice::ReadOnly);
     QByteArray file_data = new_file->readAll();
-    out << (quint16)0 << My_client::com_file_to_all << from_username << new_file->fileName() << file_data;
+    out << (quint64)0 << My_client::com_file_to_all << from_username << new_file->fileName();
+    out << (quint64)file_data.size();
+    out << file_data;
     new_file->close();
     delete new_file;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
 
     for (int i = 0; i < clients.length(); i++)
         if (clients.at(i)->get_autched())
@@ -97,11 +99,13 @@ void My_server::do_send_to_all_server_file(QFile *new_file)
 
     new_file->open(QIODevice::ReadOnly);
     QByteArray file_data = new_file->readAll();
-    out << (quint16)0 << My_client::com_public_server_file << new_file->fileName() << file_data;
+    out << (quint64)0 << My_client::com_public_server_file << new_file->fileName();
+    out << (quint64)file_data.size();
+    out << file_data;
     new_file->close();
     delete new_file;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int i = 0; i < clients.length(); ++i)
         if (clients.at(i)->get_autched())
             clients.at(i)->socket->write(block);
@@ -111,9 +115,9 @@ void My_server::do_send_server_message_to_users(QString message, const QStringLi
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0 << My_client::com_private_server_message << message;
+    out << (quint64)0 << My_client::com_private_server_message << message;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int j = 0; j < clients.length(); ++j)
         if (users.contains(clients.at(j)->get_name()))
             clients.at(j)->socket->write(block);
@@ -126,11 +130,13 @@ void My_server::do_send_server_file_to_users(QFile *new_file, const QStringList 
 
     new_file->open(QIODevice::ReadOnly);
     QByteArray file_data = new_file->readAll();
-    out << (quint16)0 << My_client::com_private_server_file << new_file->fileName() << file_data;
+    out << (quint64)0 << My_client::com_private_server_file << new_file->fileName();
+    out << (quint64)file_data.size();
+    out << file_data;
     new_file->close();
     delete new_file;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     for (int j = 0; j < clients.length(); ++j)
         if (users.contains(clients.at(j)->get_name()))
             clients.at(j)->socket->write(block);
@@ -140,14 +146,14 @@ void My_server::do_send_message_to_users(QString message, const QStringList &use
 {
     QByteArray block, blockToSender;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0 << My_client::com_message_to_users << from_username << message;
+    out << (quint64)0 << My_client::com_message_to_users << from_username << message;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
 
     QDataStream outToSender(&blockToSender, QIODevice::WriteOnly);
-    outToSender << (quint16)0 << My_client::com_message_to_users << users.join(",") << message;
+    outToSender << (quint64)0 << My_client::com_message_to_users << users.join(",") << message;
     outToSender.device()->seek(0);
-    outToSender << (quint16)(blockToSender.size() - sizeof(quint16));
+    outToSender << (quint64)(blockToSender.size() - sizeof(quint64));
     for (int j = 0; j < clients.length(); ++j)
         if (users.contains(clients.at(j)->get_name()))
             clients.at(j)->socket->write(block);
@@ -163,17 +169,21 @@ void My_server::do_send_file_to_users(QFile *new_file, const QStringList &users,
     new_file->open(QIODevice::ReadOnly);
     QByteArray file_data = new_file->readAll();
     out << new_file->fileName();
+    out << (quint64)file_data.size();
     out << file_data;
-    new_file->close();
-    delete new_file;
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
 
     QDataStream outToSender(&blockToSender, QIODevice::WriteOnly);
-    outToSender << (quint16)0 << My_client::com_file_to_users << users.join(",") << new_file->fileName()
-                << file_data;
+    outToSender << (quint64)0 << My_client::com_file_to_users << users.join(",");
+    new_file->seek(0);
+    outToSender << new_file->fileName();
+    outToSender << (quint64)file_data.size();
+    outToSender << file_data;
+    new_file->close();
+    delete new_file;
     outToSender.device()->seek(0);
-    outToSender << (quint16)(blockToSender.size() - sizeof(quint16));
+    outToSender << (quint64)(blockToSender.size() - sizeof(quint64));
     for (int j = 0; j < clients.length(); ++j)
         if (users.contains(clients.at(j)->get_name()))
             clients.at(j)->socket->write(block);

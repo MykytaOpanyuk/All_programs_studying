@@ -46,12 +46,12 @@ void Client::on_socket_ready_read()
 {
     QDataStream in(new_socket);
     if (block_size == 0) {
-        if (new_socket->bytesAvailable() < (int)sizeof(quint16))
+        if (new_socket->bytesAvailable() < (qint64)sizeof(quint64))
             return;
         in >> block_size;
         qDebug() << "_blockSize now " << block_size;
     }
-    if (new_socket->bytesAvailable() < block_size)
+    if (new_socket->bytesAvailable() < (qint64)block_size)
         return;
     else
         block_size = 0;
@@ -108,10 +108,17 @@ void Client::on_socket_ready_read()
         case My_client::com_file_to_all:
         {
             QString user, old_file_name;
-            QByteArray file_data;
+            QByteArray file_byte_array;
+            char *file_data;
+            quint64 file_size;
+
             in >> user;
             in >> old_file_name;
-            in >> file_data;
+            in >> file_size;
+            file_data = new char[file_size];
+            in.readRawData(file_data, file_size);
+            file_byte_array.append(file_data, file_size);
+
             QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
             if (file_name.isNull())
@@ -125,15 +132,20 @@ void Client::on_socket_ready_read()
 
         case My_client::com_file_to_users:
         {
-            QString user;
-            QString old_file_name;
-            QByteArray file_data;
+            QString user, old_file_name;
+            QByteArray file_byte_array;
+            char *file_data;
+            quint64 file_size;
 
             in >> user;
             in >> old_file_name;
-            in >> file_data;
+            in >> file_size;
+            file_data = new char[file_size];
+            in.readRawData(file_data, file_size);
+            file_byte_array.append(file_data, file_size);
+            delete[] file_data;
             QMessageBox::information(this, tr("New file"), old_file_name);
-            QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", file_name);
+            QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", old_file_name);
             if (file_name.isNull())
                 return;
             QFile file(file_name);
@@ -197,12 +209,12 @@ void Client::on_socket_connected()
     //try autch
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0;
+    out << (quint64)0;
     out << (quint8)My_client::com_autch_request;
     out << ui->username->text();
     name = ui->username->text();
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     new_socket->write(block);
 }
 
@@ -239,7 +251,7 @@ void Client::on_send_message_clicked()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0;
+    out << (quint64)0;
     if (ui->check_to_all->isChecked())
         out << (quint8)My_client::com_message_to_all;
     else {
@@ -252,7 +264,7 @@ void Client::on_send_message_clicked()
     }
     out << ui->message->document()->toPlainText();
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     new_socket->write(block);
     ui->message->clear();
 }
@@ -267,12 +279,17 @@ void Client::on_Send_file_clicked()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << (quint16)0;
+    out << (quint64)0;
 
     QString file_name = QFileDialog::getOpenFileName(this, tr("Open file"), "home//", "All files (*.*)");
-    QMessageBox::information(this, tr("File name"), file_name);
+    if (file_name.isNull()) {
+        QMessageBox::information(this, tr("Null File"), "No such file or directory.");
+        return;
+    }
+    else
+        QMessageBox::information(this, tr("File name"), file_name);
     QFile new_file(file_name);
-    new_file.open(QIODevice::ReadOnly | QIODevice::Text);
+    new_file.open(QIODevice::ReadOnly);
 
     if (ui->check_to_all->isChecked())
         out << (quint8)My_client::com_file_to_all;
@@ -285,12 +302,12 @@ void Client::on_Send_file_clicked()
         out << s;
     }
     QByteArray file_data = new_file.readAll();
-
     out << new_file.fileName();
+    out << (quint64)file_data.size();
     out << file_data;
     new_socket->waitForBytesWritten(-1);
     new_file.close();
     out.device()->seek(0);
-    out << (quint16)(block.size() - sizeof(quint16));
+    out << (quint64)(block.size() - sizeof(quint64));
     new_socket->write(block);
 }

@@ -68,7 +68,7 @@ private slots:
 
 private:
     My_server *server;
-    quint16 block_size;
+    quint64 block_size;
     QString name;
     bool is_autched;
 

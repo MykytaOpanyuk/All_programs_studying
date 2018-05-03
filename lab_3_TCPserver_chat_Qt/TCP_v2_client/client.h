@@ -36,7 +36,7 @@ private slots:
 private:
     Ui::Client *ui;
     QTcpSocket *new_socket;
-    quint16 block_size;
+    quint64 block_size;
     QString name;
     void add_to_log(QString text, QColor color = Qt::black);
 
