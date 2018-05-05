@@ -134,9 +134,9 @@ void My_server::do_send_server_file_to_users(QFile *new_file, const QStringList 
     out << (quint64)file_data.size();
     out << file_data;
     new_file->close();
-    delete new_file;
     out.device()->seek(0);
     out << (quint64)(block.size() - sizeof(quint64));
+    delete new_file;
     for (int j = 0; j < clients.length(); ++j)
         if (users.contains(clients.at(j)->get_name()))
             clients.at(j)->socket->write(block);
@@ -224,7 +224,7 @@ void My_server::incomingConnection(qintptr handle)
         connect(client, SIGNAL(add_user_to_gui(QString)), widget, SLOT(on_add_user_to_gui(QString)));
         connect(client, SIGNAL(remove_user_from_gui(QString)), widget, SLOT(on_remove_user_from_gui(QString)));
         connect(client, SIGNAL(message_to_gui(QString,QString,QStringList)), widget, SLOT(on_message_to_gui(QString,QString,QStringList)));
-        connect(client, SIGNAL(add_file_to_gui(QFile*,QString,QStringList)), widget, SLOT(on_file_to_gui(QFile*,QString,QStringList)));
+        connect(client, SIGNAL(add_file_to_gui(QString,QString&,QStringList)), widget, SLOT(on_file_to_gui(QString,QString&,QStringList)));
     }
     connect(client, SIGNAL(removeUser(My_client*)), this, SLOT(on_remove_user(My_client*)));
     clients.append(client);

@@ -100,18 +100,34 @@ void My_client::on_ready_read()
         }
         break;
         case com_file_to_all: {
+            char *file_data;
             QString file_name;
-            QByteArray nextByte;
-            //QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "/home", "All files (*.*)");
+            QByteArray file_byte_array;
+            quint64 file_size;
+
             in >> file_name;
-            in >> nextByte;
-            QFile *new_file = new QFile(file_name);
+            in >> file_size;
+            file_data = new char[file_size];
+            in.readRawData(file_data, file_size);
+            file_byte_array.append(file_data + 4, file_size);
+
+            QString file_name_2;
+            int i;
+            for (i = (int)file_name.size(); i > 0; i--) {
+                if (file_name[i] == '/')
+                    break;
+                file_name_2.push_front(file_name[i]);
+            }
+
+            QFile *new_file = new QFile(file_name_2);
+
             new_file->open(QIODevice::WriteOnly);
-            new_file->write(nextByte);
+            new_file->write(file_byte_array);
             new_file->close();
+
             server->do_send_to_all_file(new_file, name);
-            emit add_file_to_gui(new_file, name, QStringList());
-            delete new_file;
+            emit add_file_to_gui(new_file->fileName(), name, QStringList());
+            delete[] file_data;
         }
         break;
         case com_file_to_users: {
@@ -126,17 +142,25 @@ void My_client::on_ready_read()
             in >> file_size;
             file_data = new char[file_size];
             in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data, file_size);
-            QFile *new_file = new QFile(file_name);
+            file_byte_array.append(file_data + 4, file_size);
+
+            QString file_name_2;
+            int i;
+            for (i = (int)file_name.size(); i > 0; i--) {
+                if (file_name[i] == '/')
+                    break;
+                file_name_2.push_front(file_name[i]);
+            }
+
+            QFile *new_file = new QFile(file_name_2);
 
             new_file->open(QIODevice::WriteOnly);
-            QTextStream outstream(new_file);
-            outstream << file_byte_array;
+            new_file->write(file_byte_array);
             new_file->close();
 
             QStringList users = users_in.split(",");
             server->do_send_file_to_users(new_file, users, name);
-            emit add_file_to_gui(new_file, name, users);
+            emit add_file_to_gui(new_file->fileName(), name, users);
             delete[] file_data;
         }
         break;

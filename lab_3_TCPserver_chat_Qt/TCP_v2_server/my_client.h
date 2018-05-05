@@ -58,7 +58,7 @@ signals:
     void remove_user_from_gui(QString name);
     void removeUser(My_client *client);
     void message_to_gui(QString message, QString from, const QStringList &users);
-    void add_file_to_gui(QFile *new_file, QString from, const QStringList &users);
+    void add_file_to_gui(QString file_name, QString from, const QStringList &users);
 
 private slots:
     void on_connect() {}

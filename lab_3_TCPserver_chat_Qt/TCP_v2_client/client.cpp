@@ -117,15 +117,18 @@ void Client::on_socket_ready_read()
             in >> file_size;
             file_data = new char[file_size];
             in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data, file_size);
+            file_byte_array.append(file_data + 4, file_size);
+            delete[] file_data;
 
             QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
             if (file_name.isNull())
                 return;
+
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
-            file.write(file_data);
+            file.write(file_byte_array);
+            file.close();
             add_to_log("[" + user + "](file): " + file_name);
         }
         break;
@@ -142,15 +145,17 @@ void Client::on_socket_ready_read()
             in >> file_size;
             file_data = new char[file_size];
             in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data, file_size);
+            file_byte_array.append(file_data + 4, file_size);
             delete[] file_data;
+
             QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", old_file_name);
             if (file_name.isNull())
                 return;
+
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
-            file.write(file_data);
+            file.write(file_byte_array);
             file.close();
 
             add_to_log("[" + user + "](file): " + file_name, Qt::blue);
