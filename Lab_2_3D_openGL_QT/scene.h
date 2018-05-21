@@ -6,7 +6,7 @@
 #include "grid.h"
 #include "figure.h"
 #include "cube.h"
-#include "pyramid.h"
+#include "prism.h"
 #include "camera.h"
 
 class Scene : public QGLWidget
@@ -17,13 +17,28 @@ public:
     enum ViewType{vt3D, vtXY, vtZY, vtXZ};
     explicit Scene(QWidget *parent = 0);
     ~Scene();
-    uint countSelected(){return selectedFigures.size();}
+    uint countSelected()
+    {
+        return selectedFigures.size();
+    }
     Figure *getFirstSelected();
-    void addFigure(Figure *f){figures.append(f);}
+    void addFigure(Figure *f)
+    {
+        figures.append(f);
+    }
     void setViewType(ViewType t);
-    void setOnlySelected(bool t){showOnlySelected = t;}
-    void setRotateAngle(double a){rotateFigureAlpha = a;}
-    QList<Figure*> getFigures(){ return figures;}
+    void setOnlySelected(bool t)
+    {
+        showOnlySelected = t;
+    }
+    void setRotateAngle(double a)
+    {
+        rotateFigureAlpha = a;
+    }
+    QList<Figure*> getFigures()
+    {
+        return figures;
+    }
 
 signals:
     void figureSelected();

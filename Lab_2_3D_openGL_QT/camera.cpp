@@ -24,7 +24,7 @@ QMatrix4x4 Camera::getViewProjectMatrix()
     QMatrix4x4 res;
     res.frustum(-1, 1, -1, 1, 1, 1000);
     res.lookAt(position, target, up);
-    res *= projection;
+    res = res*projection;
     return res;
 }
 
@@ -32,8 +32,8 @@ void Camera::moveFront(GLfloat dist)
 {
     QVector3D v = target - position;
     v.normalize();
-    position += v * dist;
-    target += v * dist;
+    position = position + v * dist;
+    target = target + v * dist;
 }
 
 void Camera::rotateAroundPoint(const QVector3D &vCenter, GLfloat angle, const QVector3D &v)

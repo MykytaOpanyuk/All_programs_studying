@@ -7,35 +7,35 @@ Cube::Cube(GLfloat size): Figure()
     type = 0;
 
     points = {
-         1, -1,  1,
-         1,  1,  1,
-        -1, -1,  1,
-        -1,  1,  1,
+         2, -2,  2,
+         2,  2,  2,
+        -2, -2,  2,
+        -2,  2,  2,
 
-        -1,  1, -1,
-         1,  1, -1,
-        -1, -1, -1,
-         1, -1, -1,
+        -2,  2, -2,
+         2,  2, -2,
+        -2, -2, -2,
+         2, -2, -2,
 
-        -1,  1,  1,
-        -1,  1, -1,
-        -1, -1,  1,
-        -1, -1, -1,
+        -2,  2,  2,
+        -2,  2, -2,
+        -2, -2,  2,
+        -2, -2, -2,
 
-         1, -1, -1,
-         1,  1, -1,
-         1, -1,  1,
-         1,  1,  1,
+         2, -2, -2,
+         2,  2, -2,
+         2, -2,  2,
+         2,  2,  2,
 
-        -1,  1, -1,
-        -1,  1,  1,
-         1,  1, -1,
-         1,  1,  1,
+        -2,  2, -2,
+        -2,  2,  2,
+         2,  2, -2,
+         2,  2,  2,
 
-        -1, -1,  1,
-        -1, -1, -1,
-         1, -1,  1,
-         1, -1, -1,
+        -2, -2,  2,
+        -2, -2, -2,
+         2, -2,  2,
+         2, -2, -2
     };
 
     indices ={
@@ -53,11 +53,9 @@ Cube::Cube(GLfloat size): Figure()
         22,23,21
     };
 
-    //for (int i = 0; i <6; i++)
-        //setPlaneColor(i, QColor(150,150,150));
-    setPlaneColor(0, QColor(255,0,0));
-    setPlaneColor(1, QColor(0,255,0));
-    setPlaneColor(2, QColor(0,0,255));
+    setPlaneColor(0, QColor(255,100,0));
+    setPlaneColor(1, QColor(100,255,0));
+    setPlaneColor(2, QColor(0,100,255));
     setPlaneColor(3, QColor(255,255,0));
     setPlaneColor(4, QColor(0,255,255));
     setPlaneColor(5, QColor(255,0,255));
@@ -69,8 +67,8 @@ Cube::Cube(GLfloat size): Figure()
 void Cube::setPlaneColor(uint num, const QColor &color)
 {
     Figure::setPlaneColor(num, color);
-    for (int i = 0; i < 12; i+=3)
-    {
+
+    for (int i = 0; i < 12; i = i + 3) {
         vertexColors[num*12+i] = color.red();
         vertexColors[num*12+i+1] = color.green();
         vertexColors[num*12+i+2] = color.blue();
@@ -123,9 +121,9 @@ void Cube::drawGeometryOnly()
 
 void Cube::rainbow()
 {
-    for (int i = 0; i < 72; i+=3)
-    {
+    for (int i = 0; i < 72; i = i + 3) {
         int r = rand()%3;
+
         vertexColors[i] = 255*(r==0);
         vertexColors[i+1] = 255*(r==1);
         vertexColors[i+2] = 255*(r==2);

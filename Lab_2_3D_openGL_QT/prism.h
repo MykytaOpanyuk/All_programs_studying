@@ -14,7 +14,8 @@ protected:
     virtual void recalcTransform();
 public:
     Prism(GLfloat size = 1);
-    QColor getPlaneColor(uint num) const {
+    QColor getPlaneColor(uint num) const
+    {
         return planeColors[num];
     }
     virtual void setPlaneColor(uint num, const QColor &color);

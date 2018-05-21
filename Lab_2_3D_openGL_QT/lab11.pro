@@ -19,7 +19,7 @@ SOURCES += main.cpp\
     cube.cpp \
     grid.cpp \
     camera.cpp \
-    pyramid.cpp
+    prism.cpp
 
 HEADERS  += mainwindow.h \
     scene.h \
@@ -28,6 +28,6 @@ HEADERS  += mainwindow.h \
     grid.h \
     camera.h \
     figure.h \
-    pyramid.h
+    prism.h
 
 FORMS    += mainwindow.ui

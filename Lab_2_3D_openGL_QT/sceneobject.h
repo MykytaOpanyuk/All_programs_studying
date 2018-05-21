@@ -11,12 +11,14 @@ protected:
     QVector<GLfloat> points;
     QVector<GLubyte> indices;
 
-    virtual void addPoint(GLfloat x, GLfloat y, GLfloat z){
+    virtual void addPoint(GLfloat x, GLfloat y, GLfloat z)
+    {
         points.push_back(x);
         points.push_back(y);
         points.push_back(z);
     }
-    virtual void addPoint(const QVector3D &p){
+    virtual void addPoint(const QVector3D &p)
+    {
         addPoint(p.x(), p.y(), p.z());
     }
 
@@ -24,7 +26,8 @@ public:
     SceneObject(){}
     virtual ~SceneObject(){}
 
-    void setTransform(const QMatrix4x4 &tr){
+    void setTransform(const QMatrix4x4 &tr)
+    {
         transform = tr;
     }
 
@@ -32,7 +35,8 @@ public:
         return transform;
     }
 
-    virtual void translate(const QVector3D &v){
+    virtual void translate(const QVector3D &v)
+    {
         transform.translate(v);
     }
 
