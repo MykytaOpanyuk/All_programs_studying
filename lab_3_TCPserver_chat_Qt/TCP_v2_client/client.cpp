@@ -122,9 +122,10 @@ void Client::on_socket_ready_read()
 
             QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
-            if (file_name.isNull())
+            if (file_name.isNull()) {
+                break;
                 return;
-
+            }
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
             file.write(file_byte_array);
@@ -150,9 +151,10 @@ void Client::on_socket_ready_read()
 
             QMessageBox::information(this, tr("New file"), old_file_name);
             QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", old_file_name);
-            if (file_name.isNull())
+            if (file_name.isNull()) {
+                break;
                 return;
-
+            }
             QFile file(file_name);
             file.open(QIODevice::WriteOnly);
             file.write(file_byte_array);
@@ -310,7 +312,6 @@ void Client::on_Send_file_clicked()
     out << new_file.fileName();
     out << (quint64)file_data.size();
     out << file_data;
-    new_socket->waitForBytesWritten(-1);
     new_file.close();
     out.device()->seek(0);
     out << (quint64)(block.size() - sizeof(quint64));

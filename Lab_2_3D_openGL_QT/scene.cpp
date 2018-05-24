@@ -186,7 +186,6 @@ void Scene::keyReleaseEvent(QKeyEvent *e)
         action = MOVE;
     if (e->key() == Qt::Key_2)
         action = ROTATE;
-
     update();
 }
 
@@ -226,7 +225,7 @@ void Scene::wheelEvent(QWheelEvent *e)
     QGLWidget::wheelEvent(e);
 
     if (!e->isAccepted()) {
-        if (e->modifiers() & Qt::ShiftModifier)
+        if (e->modifiers() && Qt::ShiftModifier)
             scaleSelected(e->delta()/480.f);
         else
             cameras[currCamera]->setPosition(cameras[currCamera]->getPos() +

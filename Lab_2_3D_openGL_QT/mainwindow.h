@@ -31,13 +31,14 @@ private slots:
     void figureSelected();
     void selectColor();
     void on_actionCube_triggered();
-    void on_actionTetrahedron_triggered();
+    void on_actionPrism_triggered();
     void on_radioButton_clicked();
     void on_radioButton_2_clicked();
     void on_radioButton_3_clicked();
     void on_radioButton_4_clicked();
     void on_checkBox_clicked();
     void on_spinBox_valueChanged(int arg1);
+    void on_pushButton_clicked();
 };
 
 #endif // MAINWINDOW_H

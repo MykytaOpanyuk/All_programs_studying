@@ -126,7 +126,8 @@ void My_client::on_ready_read()
             new_file->close();
 
             server->do_send_to_all_file(new_file, name);
-            emit add_file_to_gui(new_file->fileName(), name, QStringList());
+            emit add_file_to_gui(file_name_2, name, QStringList());
+
             delete[] file_data;
         }
         break;
@@ -160,7 +161,8 @@ void My_client::on_ready_read()
 
             QStringList users = users_in.split(",");
             server->do_send_file_to_users(new_file, users, name);
-            emit add_file_to_gui(new_file->fileName(), name, users);
+            emit add_file_to_gui(file_name_2, name, users);
+
             delete[] file_data;
         }
         break;

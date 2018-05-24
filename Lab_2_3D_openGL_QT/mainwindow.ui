@@ -28,7 +28,7 @@
      <rect>
       <x>9</x>
       <y>19</y>
-      <width>409</width>
+      <width>741</width>
       <height>41</height>
      </rect>
     </property>
@@ -68,8 +68,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QToolButton" name="addButton">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string>add figure</string>
+          </property>
+          <property name="popupMode">
+           <enum>QToolButton::InstantPopup</enum>
           </property>
          </widget>
         </item>
@@ -213,10 +219,10 @@
    <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>660</x>
+      <x>760</x>
       <y>10</y>
-      <width>256</width>
-      <height>291</height>
+      <width>251</width>
+      <height>321</height>
      </rect>
     </property>
     <property name="html">
@@ -231,9 +237,24 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;2)&lt;a name=&quot;result_box&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;croll the mouse wheel&lt;/span&gt; to &lt;a name=&quot;result_box&quot;&gt;&lt;/a&gt;bring the &lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;camera closer.&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Figure control:&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shift and &lt;/span&gt;&lt;a name=&quot;result_box&quot;&gt;&lt;/a&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;S&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;croll the mouse wheel -&lt;/span&gt; change size&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;of selected figure&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ctrl &lt;/span&gt;and one of this button on keypad:&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;x, y, z&lt;/span&gt; - to change x,y,z coordinate of selected&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;figure.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>760</x>
+      <y>340</y>
+      <width>251</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Save position of figures</string>
     </property>
    </widget>
   </widget>
@@ -258,9 +279,12 @@ p, li { white-space: pre-wrap; }
     <string>Cube</string>
    </property>
   </action>
-  <action name="actionTetrahedron">
+  <action name="actionPrism">
    <property name="text">
-    <string>Tetrahedron</string>
+    <string>Prism</string>
+   </property>
+   <property name="toolTip">
+    <string>Prism</string>
    </property>
   </action>
  </widget>

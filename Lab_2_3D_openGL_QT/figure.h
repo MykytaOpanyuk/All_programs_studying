@@ -66,7 +66,7 @@ public:
     {
         return type;
     }
-
+    virtual double getSize() = 0;
     virtual void setPlaneColor(uint num, const QColor &color){
         if (num >= planeColors.size()) planeColors.resize(num+1);
         planeColors[num] = color;}

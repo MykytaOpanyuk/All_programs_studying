@@ -32,7 +32,7 @@ public:
 
 signals:
     void add_log_to_gui(QString string, QColor color = Qt::black);
-    void add_file_to_gui(QString file_name, QString from, const QStringList &users);
+    void add_file_to_gui(QString file_name, QString& from, const QStringList &users);
 
 public slots:
     void on_message_from_gui(QString message, const QStringList &users);

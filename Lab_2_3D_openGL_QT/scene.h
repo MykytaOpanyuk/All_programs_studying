@@ -13,7 +13,7 @@ class Scene : public QGLWidget
 {
     Q_OBJECT
 public:
-    enum MouseMoveAction{MOVE, ROTATE};
+    enum MouseMoveAction{MOVE, ROTATE, SIZE_CHANGING};
     enum ViewType{vt3D, vtXY, vtZY, vtXZ};
     explicit Scene(QWidget *parent = 0);
     ~Scene();
@@ -77,6 +77,7 @@ private:
     void unselectFigure(uint num);
     void moveSelected(float dist, const QVector3D &v);
     void rotateSelected(float angle, const QVector3D &v);
+    void sizeSelected(float size, const QVector3D &v);
     void scaleSelected(float s);
 };
 

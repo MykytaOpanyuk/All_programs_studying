@@ -3,7 +3,6 @@
 #include <QFile>
 #include <QDataStream>
 #include <QVector>
-
 struct file_element {
     int id;
     double x,y,z,qs,qx,qy,qz;
@@ -15,29 +14,19 @@ struct file_element {
 
 };
 
-
-QByteArray serialize(file_element *info)
+QDataStream& operator<<(QDataStream& stream, const file_element *info)
 {
-    QByteArray byteArray;
-
-    QDataStream stream(&byteArray, QIODevice::WriteOnly);
-    stream.setVersion(QDataStream::Qt_5_5);
-
     stream << info->id << info->x << info->y << info->z << info->qs << info->qx << info->qy << info->qz;
     stream << info->size << info->type << info->color << info->id_plane;
-
-    return byteArray;
+    return stream;
 }
 
-void deserialize(const QByteArray& byteArray, file_element *info)
+QDataStream& operator>>(QDataStream& stream, file_element *info)
 {
-    QDataStream stream(byteArray);
-    stream.setVersion(QDataStream::Qt_4_5);
-
     stream >> info->id >> info->x >> info->y >> info->z >> info->qs >> info->qx >> info->qy >> info->qz;
     stream >> info->size >> info->type >> info->color >> info->id_plane;
+    return stream;
 }
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -159,98 +148,85 @@ void MainWindow::on_spinBox_valueChanged(int arg1)
 
 void MainWindow::saveScene()
 {
-    QFile *file_scene = new QFile("data.txt");
-    //QByteArray file_byte_array;
+    QFile file_scene("data.txt");
+
     QList<Figure*> figures = ui->scene->getFigures();
 
-    if(file_scene->open(QIODevice::WriteOnly)) {
-        QDataStream st(file_scene);
+    for (int i = 0; i < figures.size(); i++) {
+        file_element *info = new file_element;
 
-        for (int i = 0; i < figures.size(); i++) {
-            file_element *info = new file_element;
+        int id;
 
-            int id;
+        info->x = figures[i]->getPosition().x();
+        info->y = figures[i]->getPosition().y();
+        info->z = figures[i]->getPosition().z();
+        info->qs = figures[i]->getRotation().scalar();
+        info->qx = figures[i]->getRotation().x();
+        info->qy = figures[i]->getRotation().y();
+        info->qz = figures[i]->getRotation().z();
 
-            info->x = figures[i]->getPosition().x();
-            info->y = figures[i]->getPosition().y();
-            info->z = figures[i]->getPosition().z();
-            info->qs = figures[i]->getRotation().scalar();
-            info->qx = figures[i]->getRotation().x();
-            info->qy = figures[i]->getRotation().y();
-            info->qz = figures[i]->getRotation().z();
+        if (figures[i]->getType() == 1)
+            info->size = dynamic_cast<Cube*>(figures[i])->getSize();
+        else if (figures[i]->getType() == 0)
+            info->size = dynamic_cast<Prism*>(figures[i])->getSize();
+        else
+            info->size = 0;
 
-            if (figures[i]->getType() == 1)
-                info->size = figures[i]->getSize();
-            else if (figures[i]->getType() == 0)
-                info->size = figures[i]->getSize();
-            else
-                info->size = 0;
+        info->type = figures[i]->getType();
 
-            info->type = figures[i]->getType();
+        info->id = i;
 
-            info->id = i;
+        for (uint j = 0; j < figures[i]->countPlanes(); j++) {
+            QColor c = figures[i]->getPlaneColor(j);
+            int color = (((c.blue()<<8) + c.green())<<8)+c.red();
 
-            for (uint j = 0; j < figures[i]->countPlanes(); j++) {
-                QColor c = figures[i]->getPlaneColor(j);
-                int color = (((c.blue()<<8) + c.green())<<8)+c.red();
-
-                info->color.push_back(color);
-                info->id_plane.push_back(id);
-            }
-
-            st << info->id << info->x << info->y << info->z << info->qs << info->qx << info->qy << info->qz;
-            st << info->size << info->type << info->color << info->id_plane;
-
-            //file_byte_array.append(serialize(info));
+            info->color.push_back(color);
+            info->id_plane.push_back(id);
 
         }
-        //st.writeRawData(file_byte_array, figures.size()*sizeof(file_element));
-        file_scene->close();
+
+        if(file_scene.open(QIODevice::WriteOnly)) {
+            QDataStream st(&file_scene);
+            st << info;
+        }
     }
+    file_scene.close();
 }
 
 void MainWindow::loadScene()
 {
-    QFile *file_scene = new QFile("../build-lab11-Desktop-Debug/data.txt");
+    QFile file_scene("data.txt");
     uint count = 0, i = 0;
-    QByteArray file_byte_array;
 
-    if(file_scene->open(QIODevice::ReadOnly | QIODevice::Append)) {
-        if (file_scene->pos() == 0)
+    if(file_scene.open(QIODevice::ReadOnly)) {
+        if (file_scene.pos() == 0)
             return;
-        else
-            file_scene->close();
     }
+    if(file_scene.open(QIODevice::ReadOnly)) {
+        while (!file_scene.atEnd()) {
 
-    if(file_scene->open(QIODevice::ReadOnly)) {
-        QDataStream stream(file_scene);
-        //file_byte_array = file_scene->readAll();
-        //QDataStream stream(file_byte_array);
-        stream.setVersion(QDataStream::Qt_5_5);
 
-        while (!stream.atEnd()) {
             file_element *info = new file_element;
+            QDataStream st(&file_scene);
 
-            stream >> info->id >> info->x >> info->y >> info->z >> info->qs >> info->qx >> info->qy >> info->qz;
-            stream >> info->size >> info->type >> info->color >> info->id_plane;
+            st >> info;
 
             Figure *f;
 
             if (info->type == 0)
-                f = new Cube();
+                f = new Cube(info->size);
             else
-                f = new Prism();
-
-            f->scale(info->size - 1);
+                f = new Prism(info->size);
 
             int id = info->id;
             f->setPosition(QVector3D(info->x,
                                  info->y,
                                  info->z));
             f->rotate(QQuaternion(info->qs,
-                              info->qx,
-                              info->qy,
-                              info->qz));
+                              info->x,
+                              info->y,
+                              info->z));
+
 
             int j = 0;
             while (j < info->color.size()) {
@@ -265,7 +241,7 @@ void MainWindow::loadScene()
 
             i++;
         }
-        file_scene->close();
+        file_scene.close();
     }
 }
 
