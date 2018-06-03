@@ -45,164 +45,166 @@ void Client::on_socket_display_error(QAbstractSocket::SocketError socketError)
 void Client::on_socket_ready_read()
 {
     QDataStream in(new_socket);
-    if (block_size == 0) {
-        if (new_socket->bytesAvailable() < (qint64)sizeof(quint64))
+    while(1) {
+        if (block_size == 0) {
+            if (new_socket->bytesAvailable() < (qint64)sizeof(quint64))
+                return;
+            in >> block_size;
+            qDebug() << "_blockSize now " << block_size;
+        }
+        if (new_socket->bytesAvailable() < (qint64)block_size)
             return;
-        in >> block_size;
-        qDebug() << "_blockSize now " << block_size;
-    }
-    if (new_socket->bytesAvailable() < (qint64)block_size)
-        return;
-    else
-        block_size = 0;
-    quint8 command;
-    in >> command;
-    qDebug() << "Received command " << command;
+        else
+            block_size = 0;
+        quint8 command;
+        in >> command;
+        qDebug() << "Received command " << command;
 
-    switch (command)
-    {
-        case My_client::com_autch_success:
+        switch (command)
         {
-            ui->send_message->setEnabled(true);
-            add_to_log("Enter as " + name, Qt::green);
-        }
-        break;
-        case My_client::com_users_online:
-        {
-            add_to_log("Received user list " + name, Qt::green);
-            ui->send_message->setEnabled(true);
-            QString users;
-            in >> users;
-            if (users == "")
-                return;
-            QStringList l =  users.split(",");
-            ui->users_list->addItems(l);
-        }
-        break;
-        case My_client::com_public_server_message:
-        {
-            QString message;
-            in >> message;
-            add_to_log("[PublicServerMessage]: " + message, Qt::red);
-        }
-        break;
-        case My_client::com_message_to_all:
-        {
-            QString user;
-            in >> user;
-            QString message;
-            in >> message;
-            add_to_log("[" + user + "]: " + message);
-        }
-        break;
-
-        case My_client::com_message_to_users:
-        {
-            QString user;
-            in >> user;
-            QString message;
-            in >> message;
-            add_to_log("[" + user + "](private): " + message, Qt::blue);
-        }
-        break;
-        case My_client::com_file_to_all:
-        {
-            QString user, old_file_name;
-            QByteArray file_byte_array;
-            char *file_data;
-            quint64 file_size;
-
-            in >> user;
-            in >> old_file_name;
-            in >> file_size;
-            file_data = new char[file_size];
-            in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data + 4, file_size);
-            delete[] file_data;
-
-            QMessageBox::information(this, tr("New file"), old_file_name);
-            QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
-            if (file_name.isNull()) {
-                break;
-                return;
+            case My_client::com_autch_success:
+            {
+                ui->send_message->setEnabled(true);
+                add_to_log("Enter as " + name, Qt::green);
             }
-            QFile file(file_name);
-            file.open(QIODevice::WriteOnly);
-            file.write(file_byte_array);
-            file.close();
-            add_to_log("[" + user + "](file): " + file_name);
-        }
-        break;
-
-        case My_client::com_file_to_users:
-        {
-            QString user, old_file_name;
-            QByteArray file_byte_array;
-            char *file_data;
-            quint64 file_size;
-
-            in >> user;
-            in >> old_file_name;
-            in >> file_size;
-            file_data = new char[file_size];
-            in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data + 4, file_size);
-            delete[] file_data;
-
-            QMessageBox::information(this, tr("New file"), old_file_name);
-            QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", old_file_name);
-            if (file_name.isNull()) {
-                break;
-                return;
+            break;
+            case My_client::com_users_online:
+            {
+                add_to_log("Received user list " + name, Qt::green);
+                ui->send_message->setEnabled(true);
+                QString users;
+                in >> users;
+                if (users == "")
+                    return;
+                QStringList l =  users.split(",");
+                ui->users_list->addItems(l);
             }
-            QFile file(file_name);
-            file.open(QIODevice::WriteOnly);
-            file.write(file_byte_array);
-            file.close();
+            break;
+            case My_client::com_public_server_message:
+            {
+                QString message;
+                in >> message;
+                add_to_log("[PublicServerMessage]: " + message, Qt::red);
+            }
+            break;
+            case My_client::com_message_to_all:
+            {
+                QString user;
+                in >> user;
+                QString message;
+                in >> message;
+                add_to_log("[" + user + "]: " + message);
+            }
+            break;
 
-            add_to_log("[" + user + "](file): " + file_name, Qt::blue);
-        }
-        break;
-        case My_client::com_private_server_message:
-        {
-            QString message;
-            in >> message;
-            add_to_log("[PrivateServerMessage]: " + message, Qt::red);
-        }
-        break;
-        case My_client::com_user_join:
-        {
-            QString name;
-            in >> name;
-            ui->users_list->addItem(name);
-            add_to_log( name + " joined", Qt::green);
-        }
-        break;
-        case My_client::com_user_left:
-        {
-            QString name;
-            in >> name;
-            for (int i = 0; i < ui->users_list->count(); ++i)
-                if (ui->users_list->item(i)->text() == name)
-                {
-                    ui->users_list->takeItem(i);
-                    add_to_log(name + " left", Qt::green);
+            case My_client::com_message_to_users:
+            {
+                QString user;
+                in >> user;
+                QString message;
+                in >> message;
+                add_to_log("[" + user + "](private): " + message, Qt::blue);
+            }
+            break;
+            case My_client::com_file_to_all:
+            {
+                QString user, old_file_name;
+                QByteArray file_byte_array;
+                char *file_data;
+                quint64 file_size;
+
+                in >> user;
+                in >> old_file_name;
+                in >> file_size;
+                file_data = new char[file_size];
+                in.readRawData(file_data, file_size);
+                file_byte_array.append(file_data + 4, file_size);
+                delete[] file_data;
+
+                QMessageBox::information(this, tr("New file"), old_file_name);
+                QString file_name = QFileDialog::getSaveFileName(this, tr("Open file"), "home//", "All files (*.*)");
+                if (file_name.isNull()) {
                     break;
+                    return;
                 }
+                QFile file(file_name);
+                file.open(QIODevice::WriteOnly);
+                file.write(file_byte_array);
+                file.close();
+                add_to_log("[" + user + "](file): " + file_name);
+            }
+            break;
+
+            case My_client::com_file_to_users:
+            {
+                QString user, old_file_name;
+                QByteArray file_byte_array;
+                char *file_data;
+                quint64 file_size;
+
+                in >> user;
+                in >> old_file_name;
+                in >> file_size;
+                file_data = new char[file_size];
+                in.readRawData(file_data, file_size);
+                file_byte_array.append(file_data + 4, file_size);
+                delete[] file_data;
+
+                QMessageBox::information(this, tr("New file"), old_file_name);
+                QString file_name = QFileDialog::getSaveFileName(this, tr("Save file"), "home//", old_file_name);
+                if (file_name.isNull()) {
+                    break;
+                    return;
+                }
+                QFile file(file_name);
+                file.open(QIODevice::WriteOnly);
+                file.write(file_byte_array);
+                file.close();
+
+                add_to_log("[" + user + "](file): " + file_name, Qt::blue);
+            }
+            break;
+            case My_client::com_private_server_message:
+            {
+                QString message;
+                in >> message;
+                add_to_log("[PrivateServerMessage]: " + message, Qt::red);
+            }
+            break;
+            case My_client::com_user_join:
+            {
+                QString name;
+                in >> name;
+                ui->users_list->addItem(name);
+                add_to_log( name + " joined", Qt::green);
+            }
+            break;
+            case My_client::com_user_left:
+            {
+                QString name;
+                in >> name;
+                for (int i = 0; i < ui->users_list->count(); ++i)
+                    if (ui->users_list->item(i)->text() == name)
+                    {
+                        ui->users_list->takeItem(i);
+                        add_to_log(name + " left", Qt::green);
+                        break;
+                    }
+            }
+            break;
+            case My_client::com_error_name_invalid:
+            {
+                QMessageBox::information(this, "Error", "This name is invalid.");
+                new_socket->disconnectFromHost();
+            }
+            break;
+            case My_client::com_error_name_used:
+            {
+                QMessageBox::information(this, "Error", "This name is already used.");
+                new_socket->disconnectFromHost();
+            }
+            break;
         }
-        break;
-        case My_client::com_error_name_invalid:
-        {
-            QMessageBox::information(this, "Error", "This name is invalid.");
-            new_socket->disconnectFromHost();
-        }
-        break;
-        case My_client::com_error_name_used:
-        {
-            QMessageBox::information(this, "Error", "This name is already used.");
-            new_socket->disconnectFromHost();
-        }
-        break;
     }
 }
 
@@ -256,7 +258,7 @@ void Client::on_send_to_all_clicked()
 
 void Client::on_send_message_clicked()
 {
-    QByteArray block;
+    QByteArray block = 0;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (quint64)0;
     if (ui->check_to_all->isChecked())
@@ -272,6 +274,7 @@ void Client::on_send_message_clicked()
     out << ui->message->document()->toPlainText();
     out.device()->seek(0);
     out << (quint64)(block.size() - sizeof(quint64));
+    new_socket->readAll();
     new_socket->write(block);
     ui->message->clear();
 }
@@ -284,7 +287,7 @@ void Client::add_to_log(QString text, QColor color)
 
 void Client::on_Send_file_clicked()
 {
-    QByteArray block;
+    QByteArray block = 0;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << (quint64)0;
 

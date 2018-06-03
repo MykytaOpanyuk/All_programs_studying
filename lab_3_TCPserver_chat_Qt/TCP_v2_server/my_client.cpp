@@ -1,5 +1,4 @@
 #include "my_client.h"
-#include "my_server.h"
 #include "QMessageBox"
 #include <QFileDialog>
 
@@ -34,8 +33,8 @@ void My_client::on_disconnect()
     qDebug() << "Client disconnected";
     if (is_autched) {
         emit remove_user_from_gui(name);
-        server->do_send_to_all_user_left(name);
         emit removeUser(this);
+        Task->do_send_to_all_user_left(name, server);
     }
     deleteLater();
 }
@@ -43,6 +42,7 @@ void My_client::on_disconnect()
 void My_client::on_error(QAbstractSocket::SocketError socketError) const
 {
     QWidget w;
+
     switch (socketError) {
     case QAbstractSocket::RemoteHostClosedError:
         break;
@@ -59,133 +59,16 @@ void My_client::on_error(QAbstractSocket::SocketError socketError) const
 
 void My_client::on_ready_read()
 {
-    QDataStream in(socket);
-    if (block_size == 0) {
-        if (socket->bytesAvailable() < (qint64)sizeof(quint64))
-            return;
-        in >> block_size;
-        qDebug() << "block_size now " << block_size;
-    }
+    Task = new my_task();
+    Task->setAutoDelete(true);
+    Task->get_client(this);
+    //connect(Task,SIGNAL(result()),this,SLOT(task_result()),Qt::QueuedConnection);
+    this->server->pool->start(Task);
+}
 
-    if (socket->bytesAvailable() < (qint64)block_size)
-        return;
-    else
-        block_size = 0;
+void My_client::task_result()
+{
 
-    quint8 command;
-    in >> command;
-    qDebug() << "Received command " << command;
-
-    if ((!is_autched) && (command != com_autch_request))
-        return;
-
-    switch(command) {
-        case com_autch_request: {
-            QString new_name;
-            in >> new_name;
-
-            if (!server->is_name_valid(new_name)) {
-                do_send_command(com_error_name_invalid);
-                return;
-            }
-            if (server->is_name_used(new_name)) {
-                do_send_command(com_error_name_used);
-                return;
-            }
-            name = new_name;
-            is_autched = true;
-            do_send_users_online();
-            emit add_user_to_gui(new_name);
-            server->do_send_to_all_user_join(name);
-        }
-        break;
-        case com_file_to_all: {
-            char *file_data;
-            QString file_name;
-            QByteArray file_byte_array;
-            quint64 file_size;
-
-            in >> file_name;
-            in >> file_size;
-            file_data = new char[file_size];
-            in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data + 4, file_size);
-
-            QString file_name_2;
-            int i;
-            for (i = (int)file_name.size(); i > 0; i--) {
-                if (file_name[i] == '/')
-                    break;
-                file_name_2.push_front(file_name[i]);
-            }
-
-            QFile *new_file = new QFile(file_name_2);
-
-            new_file->open(QIODevice::WriteOnly);
-            new_file->write(file_byte_array);
-            new_file->close();
-
-            server->do_send_to_all_file(new_file, name);
-            emit add_file_to_gui(file_name_2, name, QStringList());
-
-            delete[] file_data;
-        }
-        break;
-        case com_file_to_users: {
-            QString users_in;
-            char *file_data;
-            QString file_name;
-            QByteArray file_byte_array;
-            quint64 file_size;
-
-            in >> users_in;
-            in >> file_name;
-            in >> file_size;
-            file_data = new char[file_size];
-            in.readRawData(file_data, file_size);
-            file_byte_array.append(file_data + 4, file_size);
-
-            QString file_name_2;
-            int i;
-            for (i = (int)file_name.size(); i > 0; i--) {
-                if (file_name[i] == '/')
-                    break;
-                file_name_2.push_front(file_name[i]);
-            }
-
-            QFile *new_file = new QFile(file_name_2);
-
-            new_file->open(QIODevice::WriteOnly);
-            new_file->write(file_byte_array);
-            new_file->close();
-
-            QStringList users = users_in.split(",");
-            server->do_send_file_to_users(new_file, users, name);
-            emit add_file_to_gui(file_name_2, name, users);
-
-            delete[] file_data;
-        }
-        break;
-        case com_message_to_all: {
-            QString message;
-            in >> message;
-            server->do_send_to_all_message(message, name);
-            emit message_to_gui(message, name, QStringList());
-        }
-        break;
-        case com_message_to_users: {
-            QString users_in;
-            in >> users_in;
-            QString message;
-            in >> message;
-            QStringList users = users_in.split(",");
-            server->do_send_message_to_users(message, users, name);
-            emit message_to_gui(message, name, users);
-        }
-        break;
-    }
-
-    //for (long long i = 0; i < 4000000000; ++i){}
 }
 
 void My_client::do_send_command(quint8 comm) const

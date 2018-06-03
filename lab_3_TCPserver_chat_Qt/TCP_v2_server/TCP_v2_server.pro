@@ -28,12 +28,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     my_client.cpp \
-    my_server.cpp
+    my_server.cpp \
+    my_task.cpp
 
 HEADERS += \
         mainwindow.h \
     my_client.h \
-    my_server.h
+    my_server.h \
+    my_task.h
 
 FORMS += \
         mainwindow.ui

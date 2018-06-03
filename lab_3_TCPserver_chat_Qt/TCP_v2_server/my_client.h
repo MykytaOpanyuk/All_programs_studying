@@ -8,8 +8,11 @@
 #include <QtGui>
 #include <QRegExp>
 #include "my_server.h"
+#include "my_server.h"
+#include "my_task.h"
 
 class My_server;
+class my_task;
 
 class My_client : public QObject
 {
@@ -52,6 +55,7 @@ public:
     }
     void do_send_command(quint8 command) const;
     void do_send_users_online() const;
+    void task_result();
 
 signals:
     void add_user_to_gui(QString name);
@@ -66,11 +70,12 @@ private slots:
     void on_ready_read();
     void on_error(QAbstractSocket::SocketError socketError) const;
 
-private:
+public:
     My_server *server;
     quint64 block_size;
     QString name;
     bool is_autched;
+    my_task *Task;
 
 };
 #endif // MY_CLIENT_H
