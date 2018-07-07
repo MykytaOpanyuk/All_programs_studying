@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<TestSettings id="49586963-01e4-4178-84fe-df062c039e9c" name="TestSettings1" enableDefaultDataCollectors="false" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
-  <Description><!--_locID_text="Description1"-->Это - параметры по умолчанию для локального тестового запуска.</Description>
-  <Deployment enabled="false"/>
-</TestSettings>
