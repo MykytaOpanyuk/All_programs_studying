@@ -1,0 +1,4 @@
+3
+candies;white bar;16.99 886
+candies;chocoshaker;20.55 1162
+candies;cake;44.55 404

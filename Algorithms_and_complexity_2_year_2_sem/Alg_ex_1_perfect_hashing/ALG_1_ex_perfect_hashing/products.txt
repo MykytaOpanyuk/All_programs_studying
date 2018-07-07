@@ -1,0 +1,4 @@
+3
+candies;boom;14.95 429
+candies;chocolate bar;16.65 1287
+meat;chicken;33.99 725
