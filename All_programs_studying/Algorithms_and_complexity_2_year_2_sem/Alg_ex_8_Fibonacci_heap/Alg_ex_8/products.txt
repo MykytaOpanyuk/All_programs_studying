@@ -1,0 +1,6 @@
+5
+candies;white bar;16.99
+candies;chocoshaker;20.55
+meat;chicken;45.99
+fruit;orange;27.95
+fruit;apple;15.55
