@@ -1,0 +1,10 @@
+8
+nt;nt;0.01 0 5
+candies;boom;19.99 5 0
+candies;cake;35.95 5 5
+candies;chocolate bar;16.5 10 5
+meat;beaf;49.95 10 10
+vegetables;potato;6.99 5 5
+fruits;orange;25.49 0 5
+fruits;apple;19.99 10 5
+fast food;burger;25.95 5 10

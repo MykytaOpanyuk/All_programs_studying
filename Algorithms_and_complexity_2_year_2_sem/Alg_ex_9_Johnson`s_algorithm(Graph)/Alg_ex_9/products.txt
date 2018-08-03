@@ -1,0 +1,5 @@
+4
+candies;chocoshaker;20.55
+fruit;orange;27.95
+fruit;apple;15.55
+drinks;shaker;25.55
